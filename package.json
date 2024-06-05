@@ -1,0 +1,17 @@
+{
+	"name": "com.zenvin.service-locator",
+	"version": "0.0.1",
+	"displayName": "Service Locator",
+	"unity": "2020.3",
+	"author": {
+		"name": "Zenvin",
+		"email": "zenvin@outlook.de"
+	},
+	"dependencies": {},
+	"hideInEditor": false,
+	"keywords": [
+		"service-locator"
+	],
+	"license": "LICENSE.md",
+	"samples": []
+}
