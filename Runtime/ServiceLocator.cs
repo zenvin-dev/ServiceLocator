@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Zenvin.ServiceLocator {
-	public sealed class ServiceLocator : IServiceLocator {
+	public sealed partial class ServiceLocator : IServiceLocator {
 		private static ServiceLocator global;
 		private static Dictionary<IServiceContext, ServiceLocator> contextualized;
 
@@ -18,15 +18,12 @@ namespace Zenvin.ServiceLocator {
 		/// Gets or creates a contextualized <see cref="ServiceLocator"/> instance for the given context.<br></br>
 		/// Will fall back to <see cref="Global"/> when <paramref name="context"/> is <see langword="null"/>.
 		/// </summary>
-		public static ServiceLocator ForContext (IServiceContext context) {
+		public static IServiceLocator ForContext (IServiceContext context) {
 			if (context == null)
 				return Global;
 
-			if (contextualized == null)
-				contextualized = new Dictionary<IServiceContext, ServiceLocator> ();
-
-			if (!contextualized.TryGetValue (context, out var locator))
-				contextualized[context] = locator = new ServiceLocator ();
+			if (contextualized == null || !contextualized.TryGetValue (context, out var locator))
+				return new Proxy (context);
 
 			return locator;
 		}
@@ -64,6 +61,17 @@ namespace Zenvin.ServiceLocator {
 		public IServiceLocator Reset () {
 			Collection.Clear ();
 			return this;
+		}
+
+
+		private static ServiceLocator CreateLocatorForContext (IServiceContext context) {
+			if (contextualized == null)
+				contextualized = new Dictionary<IServiceContext, ServiceLocator> ();
+
+			if (!contextualized.TryGetValue (context, out var locator))
+				contextualized[context] = locator = new ServiceLocator ();
+
+			return locator;
 		}
 	}
 }
