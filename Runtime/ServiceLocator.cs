@@ -66,6 +66,12 @@ namespace Zenvin.ServiceLocator {
 		}
 
 		/// <inheritdoc/>
+		public IServiceLocator Unregister (Type type) {
+			Collection.Unregister (type);
+			return this;
+		}
+
+		/// <inheritdoc/>
 		public IServiceLocator Unregister<T> (T instance) where T : class {
 			Collection.Unregister (instance);
 			return this;

@@ -43,6 +43,17 @@ namespace Zenvin.ServiceLocator {
 			return true;
 		}
 
+		internal bool Unregister (Type type) {
+			if (!instances.TryGetValue (type, out var instance))
+				return false;
+
+			if (instance is IService service)
+				service.OnUnregister (true);
+
+			instances.Remove (type);
+			return true;
+		}
+
 		internal bool Unregister<T> (T instance) where T : class {
 			foreach (var kvp in instances) {
 				if (kvp.Value != instance)
