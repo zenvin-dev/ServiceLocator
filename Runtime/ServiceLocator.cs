@@ -31,24 +31,9 @@ namespace Zenvin.ServiceLocator {
 			return locator;
 		}
 
-		/// <inheritdoc/>
-		public ServiceLocator Get<T> (out T instance) where T : class {
-			return Get (typeof (T), out instance);
-		}
 
 		/// <inheritdoc/>
-		public ServiceLocator Get<T> (out T instance, Action missingServiceCallback) where T : class {
-			return Get (typeof(T), out instance, missingServiceCallback);
-		}
-
-		/// <inheritdoc/>
-		public ServiceLocator Get<T> (Type type, out T instance) where T : class {
-			Collection.Get (type, out instance);
-			return this;
-		}
-
-		/// <inheritdoc/>
-		public ServiceLocator Get<T> (Type type, out T instance, Action missingServiceCallback) where T : class {
+		public IServiceLocator Get<T> (Type type, out T instance, Action missingServiceCallback) where T : class {
 			if (!Collection.Get (type, out instance))
 				missingServiceCallback?.Invoke ();
 
@@ -56,43 +41,27 @@ namespace Zenvin.ServiceLocator {
 		}
 
 		/// <inheritdoc/>
-		public ServiceLocator Register<T> (T instance) where T : class {
-			return Register (instance, false);
-		}
-
-		/// <inheritdoc/>
-		public ServiceLocator Register<T> (T instance, bool allowReplace) where T : class {
-			return Register (typeof (T), instance, allowReplace);
-		}
-
-		/// <inheritdoc/>
-		public ServiceLocator Register<T> (Type type, T instance, bool allowReplace) where T : class {
-			Collection.Register (type, instance, allowReplace);
-			return this;
-		}
-
-		/// <inheritdoc/>
-		public ServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerFailedCallback) where T : class {
+		public IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback) where T : class {
 			if (!Collection.Register (type, instance, allowReplace))
-				registerFailedCallback?.Invoke ();
+				registerErrorCallback?.Invoke ();
 
 			return this;
 		}
 
 		/// <inheritdoc/>
-		public ServiceLocator Unregister<T> (T instance) where T : class {
+		public IServiceLocator Unregister<T> (T instance) where T : class {
 			Collection.Unregister (instance);
 			return this;
 		}
 
 		/// <inheritdoc/>
-		public ServiceLocator Unregister<T> (Type type, T instance) where T : class {
+		public IServiceLocator Unregister<T> (Type type, T instance) where T : class {
 			Collection.Unregister (type, instance);
 			return this;
 		}
 
 		/// <inheritdoc/>
-		public ServiceLocator Reset () {
+		public IServiceLocator Reset () {
 			Collection.Clear ();
 			return this;
 		}
