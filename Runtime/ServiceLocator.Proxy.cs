@@ -26,6 +26,11 @@ namespace Zenvin.ServiceLocator {
 				return locator.Register (instance);
 			}
 
+			public IServiceLocator Unregister (Type type) {
+				Debug.LogWarning ("Cannot unregister value from proxy.");
+				return this;
+			}
+
 			public IServiceLocator Unregister<T> (Type type, T instance) where T : class {
 				// Since proxies are effectively null-placeholders for locators, they will not contain a value that could be unregistered
 				Debug.LogWarning ("Cannot unregister value from proxy.");
