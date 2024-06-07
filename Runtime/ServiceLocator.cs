@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 
 namespace Zenvin.ServiceLocator {
+	/// <summary>
+	/// An implementation of <see cref="IServiceLocator"/> that contains both a global service collection an arbitrary number of contextualized collections.
+	/// </summary>
 	public sealed partial class ServiceLocator : IServiceLocator {
 		private static ServiceLocator global;
 		private static Dictionary<IServiceContext, ServiceLocator> contextualized;
@@ -18,6 +21,10 @@ namespace Zenvin.ServiceLocator {
 		/// Gets or creates a contextualized <see cref="ServiceLocator"/> instance for the given context.<br></br>
 		/// Will fall back to <see cref="Global"/> when <paramref name="context"/> is <see langword="null"/>.
 		/// </summary>
+		/// <remarks>
+		/// If the context does not have an existing <see cref="ServiceLocator"/> instance associated with it, a proxy object will be returned.
+		/// This proxy will create a new locator for the given context on demand, once instances are registered with it.
+		/// </remarks>
 		public static IServiceLocator ForContext (IServiceContext context) {
 			if (context == null)
 				return Global;
@@ -26,6 +33,19 @@ namespace Zenvin.ServiceLocator {
 				return new Proxy (context);
 
 			return locator;
+		}
+
+		/// <summary>
+		/// Resets the Global and all contextualized <see cref="ServiceLocator"/> instances.
+		/// </summary>
+		public static void ResetAll () {
+			global?.Reset ();
+			if (contextualized != null) {
+				foreach (var loc in contextualized.Values) {
+					loc?.Reset ();
+				}
+				contextualized = null;
+			}
 		}
 
 
