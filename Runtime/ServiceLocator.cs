@@ -48,6 +48,24 @@ namespace Zenvin.ServiceLocator {
 			}
 		}
 
+		/// <summary>
+		/// Removes the <see cref="ServiceLocator"/> associated with a given <see cref="IService"/>.
+		/// </summary>
+		/// <param name="context">The context whose associated <see cref="ServiceLocator"/> to remove.</param>
+		/// <returns>Whether a <see cref="ServiceLocator"/> existed for the given context, and it was removed successfully.</returns>
+		public static bool ResetContext (IServiceContext context) {
+			if (context == null)
+				return false;
+			if (contextualized == null)
+				return false;
+			if (!contextualized.TryGetValue (context, out var locator))
+				return false;
+
+			locator.Reset ();
+			contextualized.Remove (context);
+			return true;
+		}
+
 
 		/// <inheritdoc/>
 		public IServiceLocator Get<T> (Type type, out T instance, Action missingServiceCallback) where T : class {
