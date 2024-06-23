@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Zenvin.ServiceLocator {
-	public sealed class ServiceCollection {
+	public sealed class ServiceCollection : IEnumerable<KeyValuePair<Type, object>> {
 		private readonly Dictionary<Type, object> instances = new Dictionary<Type, object> ();
 
 
@@ -92,6 +93,15 @@ namespace Zenvin.ServiceLocator {
 					service.OnClear ();
 			}
 			instances.Clear ();
+		}
+
+
+		public IEnumerator<KeyValuePair<Type, object>> GetEnumerator () {
+			return ((IEnumerable<KeyValuePair<Type, object>>)instances).GetEnumerator ();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator () {
+			return ((IEnumerable)instances).GetEnumerator ();
 		}
 	}
 }
