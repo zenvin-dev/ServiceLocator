@@ -17,6 +17,12 @@ namespace Zenvin.ServiceLocator {
 		/// </summary>
 		public static ServiceLocator Global => global ??= new ServiceLocator ();
 
+
+		static ServiceLocator () {
+			InitializeStatic ();
+		}
+
+
 		/// <summary>
 		/// Gets or creates a contextualized <see cref="ServiceLocator"/> instance for the given context.<br></br>
 		/// Will fall back to <see cref="Global"/> when <paramref name="context"/> is <see langword="null"/>.
@@ -110,6 +116,30 @@ namespace Zenvin.ServiceLocator {
 		}
 
 
+		internal ServiceCollection GetCollection () => collection;
+
+		internal static ServiceCollection GetCollection (IServiceContext context) {
+			if (context == null)
+				return null;
+			if (contextualized == null)
+				return null;
+
+			if (contextualized.TryGetValue (context, out var loc) && loc != null)
+				return loc.GetCollection ();
+
+			return null;
+		}
+
+		internal static IEnumerable<IServiceContext> GetContexts () {
+			if (contextualized == null)
+				yield break;
+
+			foreach (var ctx in contextualized.Keys) {
+				yield return ctx;
+			}
+		}
+
+
 		private static ServiceLocator CreateLocatorForContext (IServiceContext context) {
 			if (contextualized == null)
 				contextualized = new Dictionary<IServiceContext, ServiceLocator> ();
@@ -119,5 +149,7 @@ namespace Zenvin.ServiceLocator {
 
 			return locator;
 		}
+
+		static partial void InitializeStatic ();
 	}
 }
