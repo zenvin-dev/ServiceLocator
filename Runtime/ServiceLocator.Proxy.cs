@@ -26,7 +26,7 @@ namespace Zenvin.ServiceLocator {
 				}
 
 				var locator = CreateLocatorForContext (context);
-				return locator.Register (instance);
+				return locator.Register (type, instance, allowReplace, registerErrorCallback, out success);
 			}
 
 			public IServiceLocator Unregister (Type type) {
