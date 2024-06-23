@@ -12,15 +12,18 @@ namespace Zenvin.ServiceLocator {
 			internal Proxy (IServiceContext context) => this.context = context;
 
 
-			public IServiceLocator Get<T> (Type type, out T instance, Action missingServiceCallback) where T : class {
+			public IServiceLocator Get<T> (Type type, out T instance, out bool serviceFound, Action missingServiceCallback) where T : class {
 				instance = null;
+				serviceFound = false;
 				missingServiceCallback?.Invoke ();
 				return this;
 			}
 
-			public IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback) where T : class {
-				if (context == null)
+			public IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback, out bool success) where T : class {
+				if (context == null) {
+					success = false;
 					return this;
+				}
 
 				var locator = CreateLocatorForContext (context);
 				return locator.Register (instance);

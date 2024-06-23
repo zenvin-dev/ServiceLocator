@@ -11,9 +11,10 @@ namespace Zenvin.ServiceLocator {
 		/// <typeparam name="T">The type of instance to retrieve.</typeparam>
 		/// <param name="type">The type that the returned instance should be associated with. Should be assignable from <typeparamref name="T"/>.</param>
 		/// <param name="instance">The instance registered in the service locator.</param>
-		/// <param name="missingServiceCallback">A callback that is invoked when there is no instance associated with <paramref name="type"/>. Optional.</param>
+		/// <param name="serviceFound">Whether a service instance was found.</param>
 		/// <returns>The <see cref="IServiceLocator"/> that the method was called on. Useful for chaining multiple calls.</returns>
-		IServiceLocator Get<T> (Type type, out T instance, Action missingServiceCallback) where T : class;
+		/// <param name="missingServiceCallback">A callback that is invoked when there is no instance associated with <paramref name="type"/>. Optional.</param>
+		IServiceLocator Get<T> (Type type, out T instance, out bool serviceFound, Action missingServiceCallback) where T : class;
 		/// <summary>
 		/// Attempts to register an object to the service locator. 
 		/// </summary>
@@ -22,8 +23,9 @@ namespace Zenvin.ServiceLocator {
 		/// <param name="instance">The object to register.</param>
 		/// <param name="allowReplace">Whether the object already registered for <paramref name="type"/> (if there is any) may be replaced.</param>
 		/// <param name="registerErrorCallback">A callback that is invoked when registration failed. </param>
+		/// <param name="success">Whether registration was successful.</param>
 		/// <returns>The <see cref="IServiceLocator"/> that the method was called on. Useful for chaining multiple calls.</returns>
-		IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback) where T : class;
+		IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback, out bool success) where T : class;
 		/// <summary>
 		/// Unregisters the object associated with the given <paramref name="type"/>.
 		/// </summary>
