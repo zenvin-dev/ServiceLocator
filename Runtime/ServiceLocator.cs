@@ -68,16 +68,18 @@ namespace Zenvin.ServiceLocator {
 
 
 		/// <inheritdoc/>
-		public IServiceLocator Get<T> (Type type, out T instance, Action missingServiceCallback) where T : class {
-			if (!Collection.Get (type, out instance))
+		public IServiceLocator Get<T> (Type type, out T instance, out bool serviceFound, Action missingServiceCallback) where T : class {
+			serviceFound = Collection.Get (type, out instance);
+			if (!serviceFound)
 				missingServiceCallback?.Invoke ();
 
 			return this;
 		}
 
 		/// <inheritdoc/>
-		public IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback) where T : class {
-			if (!Collection.Register (type, instance, allowReplace))
+		public IServiceLocator Register<T> (Type type, T instance, bool allowReplace, Action registerErrorCallback, out bool success) where T : class {
+			success = Collection.Register (type, instance, allowReplace);
+			if (!success)
 				registerErrorCallback?.Invoke ();
 
 			return this;
