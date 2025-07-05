@@ -122,6 +122,44 @@ namespace Zenvin.Services
 		}
 
 
+		public static TInstance Get<TInstance> ()
+		{
+			return Get<TInstance, TInstance> (null, true, true);
+		}
+
+		public static TInstance Get<TContract, TInstance> ()
+			where TInstance : TContract
+		{
+			return Get<TContract, TInstance> (null, true, true);
+		}
+
+		public static TInstance Get<TInstance> (bool required)
+		{
+			return Get<TInstance, TInstance> (null, true, required);
+		}
+
+		public static TInstance Get<TContract, TInstance> (bool required)
+			where TInstance : TContract
+		{
+			return Get<TContract, TInstance> (null, true, required);
+		}
+
+		public static TInstance Get<TInstance> (IScopeKey scope, bool required)
+		{
+			return Get<TInstance, TInstance> (scope, true, required);
+		}
+
+		public static TInstance Get<TContract, TInstance> (IScopeKey scope, bool required)
+			where TInstance : TContract
+		{
+			return Get<TContract, TInstance> (scope, true, required);
+		}
+
+		public static TInstance Get<TInstance> (IScopeKey scope, bool fallbackToGlobalScope, bool required)
+		{
+			return Get<TInstance, TInstance> (scope, fallbackToGlobalScope, required);
+		}
+
 		public static TInstance Get<TContract, TInstance> (IScopeKey scope, bool fallbackToGlobalScope, bool required)
 			where TInstance : TContract
 		{
@@ -148,6 +186,38 @@ namespace Zenvin.Services
 			return instance;
 		}
 
+
+		public static bool TryGet<TInstance> (out TInstance instance)
+		{
+			AssertInitialized ();
+			return loc.TryGetInternal<TInstance, TInstance> (null, true, out instance, out _);
+		}
+
+		public static bool TryGet<TInstance> (IScopeKey scope, out TInstance instance)
+		{
+			AssertInitialized ();
+			return loc.TryGetInternal<TInstance, TInstance> (scope, true, out instance, out _);
+		}
+
+		public static bool TryGet<TInstance> (IScopeKey scope, bool fallbackToGlobalScope, out TInstance instance)
+		{
+			AssertInitialized ();
+			return loc.TryGetInternal<TInstance, TInstance> (scope, fallbackToGlobalScope, out instance, out _);
+		}
+
+		public static bool TryGet<TContract, TInstance> (out TInstance instance)
+			where TInstance : TContract
+		{
+			AssertInitialized ();
+			return loc.TryGetInternal<TContract, TInstance> (null, true, out instance, out _);
+		}
+
+		public static bool TryGet<TContract, TInstance> (IScopeKey scope, out TInstance instance)
+			where TInstance : TContract
+		{
+			AssertInitialized ();
+			return loc.TryGetInternal<TContract, TInstance> (scope, true, out instance, out _);
+		}
 
 		public static bool TryGet<TContract, TInstance> (IScopeKey scope, bool fallbackToGlobalScope, out TInstance instance)
 			where TInstance : TContract
