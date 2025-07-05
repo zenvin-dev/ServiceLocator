@@ -296,7 +296,7 @@ namespace Zenvin.Services.Tests
 		[TearDown]
 		public void Teardown ()
 		{
-			ServiceLocator.Finalize ();
+			ServiceLocator.Reset ();
 		}
 	}
 }

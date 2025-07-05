@@ -221,7 +221,7 @@ namespace Zenvin.Services
 		}
 
 
-		internal static void Finalize ()
+		internal static void Reset ()
 		{
 			AssertInitialized ();
 
