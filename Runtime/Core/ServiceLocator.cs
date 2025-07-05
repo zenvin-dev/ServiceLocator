@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Zenvin.Services.Core;
 using Zenvin.Services.Exceptions;
 
-namespace Zenvin.Services
+namespace Zenvin.Services.Core
 {
 	public sealed partial class ServiceLocator
 	{

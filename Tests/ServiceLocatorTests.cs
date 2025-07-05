@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.IO;
+using Zenvin.Services.Core;
 using Zenvin.Services.Exceptions;
 using Zenvin.Services.Tests.Implementation;
 using static Zenvin.Services.Tests.ServiceLocatorTestHelpers;
