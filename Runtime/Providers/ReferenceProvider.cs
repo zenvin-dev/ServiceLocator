@@ -1,0 +1,22 @@
+using System;
+using IServiceProvider = Zenvin.Services.Core.IServiceProvider;
+
+namespace Zenvin.Services.Providers
+{
+	internal sealed class ReferenceProvider : IServiceProvider
+	{
+		private readonly object instance;
+
+
+		public ReferenceProvider (object instance)
+		{
+			this.instance = instance;
+		}
+
+
+		bool IServiceProvider.IsValid => instance != null;
+
+		object IServiceProvider.Get () => instance;
+		void IDisposable.Dispose () => (instance as IDisposable)?.Dispose ();
+	}
+}
