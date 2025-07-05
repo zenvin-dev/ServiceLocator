@@ -14,6 +14,22 @@ namespace Zenvin.Services
 
 		private ServiceScope globalScope;
 		private readonly Dictionary<IScopeKey, ServiceScope> scopes;
+		private IScopeContextProvider scopeContextProvider;
+
+
+		public static IScopeContextProvider ScopeContextProvider
+		{
+			get
+			{
+				AssertInitialized ();
+				return loc.scopeContextProvider;
+			}
+			set
+			{
+				AssertInitialized ();
+				loc.scopeContextProvider = value;
+			}
+		}
 
 		public static bool Initialized
 		{
@@ -196,6 +212,7 @@ namespace Zenvin.Services
 			if (TryGetTypesException (contractType, instanceType, doTypeCheck, out exception))
 				return false;
 
+			scopeKey ??= scopeContextProvider?.GetActiveScope ();
 			var hasKey = scopeKey != null;
 
 			ServiceScope scope;
