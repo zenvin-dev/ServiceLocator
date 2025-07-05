@@ -17,6 +17,19 @@ namespace Zenvin.Services.Providers
 		bool IServiceProvider.IsValid => instance != null;
 
 		object IServiceProvider.Get () => instance;
-		void IDisposable.Dispose () => (instance as IDisposable)?.Dispose ();
+		void IDisposable.Dispose ()
+		{
+			if (!(instance is IDisposable disp))
+				return;
+
+			try
+			{
+				disp.Dispose ();
+			}
+			catch
+			{
+				// Do nothing
+			}
+		}
 	}
 }
