@@ -6,7 +6,7 @@ using Zenvin.Services.Exceptions;
 
 namespace Zenvin.Services
 {
-	public class ServiceLocator
+	public sealed partial class ServiceLocator
 	{
 		public delegate void BuildServiceScopeCallback (ServiceScopeBuilder builder);
 
@@ -48,33 +48,27 @@ namespace Zenvin.Services
 
 		private ServiceLocator () { }
 
-		private ServiceLocator (ServiceScope globalScope, IScopeContextProvider scopeContextProvider = null)
+		private ServiceLocator (ServiceScope globalScope)
 		{
 			this.globalScope = globalScope;
-			this.scopeContextProvider = scopeContextProvider;
 			scopes = new Dictionary<IScopeKey, ServiceScope> ();
 		}
 
 
-		public static bool Initialize (BuildServiceScopeCallback buildGlobalScopeCallback)
-		{
-			return Initialize (buildGlobalScopeCallback, null);
-		}
-
-		public static bool Initialize (BuildServiceScopeCallback buildGlobalScopeCallback, IScopeContextProvider provider)
+		public static FluentConfigurator Initialize (BuildServiceScopeCallback buildGlobalScopeCallback)
 		{
 			if (buildGlobalScopeCallback == null)
 				throw new ArgumentNullException (nameof (buildGlobalScopeCallback));
 			if (loc != null)
-				return false;
+				return new FluentConfigurator (loc, false);
 
 			var builder = new ServiceScopeBuilder (true);
 			buildGlobalScopeCallback?.Invoke (builder);
 
 			var scope = builder.Build ();
-			loc = new ServiceLocator (scope, provider);
+			loc = new ServiceLocator (scope);
 
-			return true;
+			return new FluentConfigurator (loc, true);
 		}
 
 
@@ -89,7 +83,7 @@ namespace Zenvin.Services
 
 			var scopes = loc.scopes;
 			if (scopes.ContainsKey (key))
-				return true;
+				return false;
 
 			var builder = new ServiceScopeBuilder ();
 			buildScopeCallback.Invoke (builder);

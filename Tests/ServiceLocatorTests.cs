@@ -13,7 +13,7 @@ namespace Zenvin.Services.Tests
 		public void IsInitializedWithEmptyGlobalScope ()
 		{
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope);
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
 
 			// Assert
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
@@ -24,7 +24,7 @@ namespace Zenvin.Services.Tests
 		{
 			// Act
 			ServiceLocator.Initialize (BuildEmptyScope);
-			var init = ServiceLocator.Initialize (BuildEmptyScope);
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
 
 			// Assert
 			Assert.IsFalse (init, "ServiceLocator should not be initialized twice");
@@ -37,7 +37,9 @@ namespace Zenvin.Services.Tests
 			var provider = new TestScopeProvider ();
 
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope, provider);
+			var init = ServiceLocator.Initialize (BuildEmptyScope)
+				.WithScopeContextProvider(provider)
+				.WasInitialized;
 
 			// Assert
 			Assert.IsTrue (init);
@@ -51,7 +53,7 @@ namespace Zenvin.Services.Tests
 			var key = new TestScopeKey (0);
 
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope);
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
 			var added = ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
 
 			// Assert
@@ -65,7 +67,7 @@ namespace Zenvin.Services.Tests
 		{
 			// Arrange
 			var key = new TestScopeKey (0);
-			var init = ServiceLocator.Initialize (BuildEmptyScope);
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
 
 			// Act
 			var added = ServiceLocator.AddScope (key, BuildEmptyScope);
@@ -81,7 +83,7 @@ namespace Zenvin.Services.Tests
 		{
 			// Arrange
 			var key = new TestScopeKey (0);
-			var init = ServiceLocator.Initialize (BuildEmptyScope);
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
 			var added = ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
 
 			// Act
@@ -278,13 +280,15 @@ namespace Zenvin.Services.Tests
 			var provider = new TestScopeProvider () { CurrentKey = key0 };
 			const string expectedValue = "expected";
 			const string fakeValue = "fake";
-			ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, fakeValue), provider);
+			ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, fakeValue))
+				.WithScopeContextProvider(provider);
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, expectedValue));
 
 			// Act
 			var get = ServiceLocator.TryGet (out string value);
 
 			// Assert
+			Assert.AreEqual (ServiceLocator.ScopeContextProvider, provider);
 			Assert.AreEqual (expectedValue, value);
 		}
 
