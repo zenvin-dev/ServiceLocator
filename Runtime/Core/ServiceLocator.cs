@@ -45,8 +45,6 @@ namespace Zenvin.Services.Core
 		}
 
 
-		private ServiceLocator () { }
-
 		private ServiceLocator (ServiceScope globalScope)
 		{
 			this.globalScope = globalScope;
