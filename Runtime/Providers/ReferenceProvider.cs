@@ -41,5 +41,10 @@ namespace Zenvin.Services.Providers
 				// Do nothing
 			}
 		}
+
+		public override string ToString ()
+		{
+			return instance?.ToString () ?? "Missing reference.";
+		}
 	}
 }

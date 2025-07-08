@@ -1,0 +1,18 @@
+{
+    "name": "Zenvin.ServiceLocator.Editor",
+    "rootNamespace": "Zenvin.ServiceLocator.Editor",
+    "references": [
+        "GUID:1225563da49975440ac7c70d6bfa82ad"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

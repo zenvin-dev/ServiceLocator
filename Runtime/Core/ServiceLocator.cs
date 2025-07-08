@@ -45,6 +45,10 @@ namespace Zenvin.Services.Core
 		}
 
 
+		internal static ServiceScope GlobalScope => loc?.globalScope;
+		internal static IEnumerable<KeyValuePair<IScopeKey, ServiceScope>> KeyedScopes => loc?.scopes;
+
+
 		private ServiceLocator (ServiceScope globalScope)
 		{
 			this.globalScope = globalScope;

@@ -20,5 +20,10 @@ namespace Zenvin.Services.Providers
 		object IServiceProvider.Get () => factory.Invoke ();
 		void IServiceProvider.Initialize (IScopeKey scope) { }
 		void IDisposable.Dispose () { }
+
+		public override string ToString ()
+		{
+			return $"Factory<{typeof(T).FullName}>";
+		}
 	}
 }
