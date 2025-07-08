@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Zenvin.Services.Core
 {
@@ -10,6 +11,24 @@ namespace Zenvin.Services.Core
 		internal IScopeKey ParentKey { get; set; }
 		internal bool IsEmpty => instances == null || instances.Count == 0;
 
+
+		public void Initialize (IScopeKey scope, ILogger logger)
+		{
+			if (IsEmpty)
+				return;
+
+			foreach (var provider in instances)
+			{
+				try
+				{
+					provider.Value.Initialize (scope);
+				}
+				catch (Exception e)
+				{
+					logger?.LogException (new Exception("Error while initializing service.", e));
+				}
+			}
+		}
 
 		public void Dispose ()
 		{

@@ -64,6 +64,7 @@ namespace Zenvin.Services.Core
 
 			var scope = builder.Build ();
 			loc = new ServiceLocator (scope);
+			scope.Initialize (null, null);
 
 			return new FluentConfigurator (loc, true);
 		}
@@ -90,6 +91,7 @@ namespace Zenvin.Services.Core
 				return false;
 
 			scopes.Add (key, scope);
+			scope.Initialize (key, null);
 			return true;
 		}
 

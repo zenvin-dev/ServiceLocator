@@ -6,6 +6,7 @@ namespace Zenvin.Services.Core
 	{
 		bool IsValid { get; }
 
+		void Initialize (IScopeKey scope);
 		object Get ();
 	}
 }

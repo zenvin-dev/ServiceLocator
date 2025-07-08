@@ -1,4 +1,5 @@
 using System;
+using Zenvin.Services.Core;
 using IServiceProvider = Zenvin.Services.Core.IServiceProvider;
 
 namespace Zenvin.Services.Providers
@@ -17,6 +18,15 @@ namespace Zenvin.Services.Providers
 		bool IServiceProvider.IsValid => instance != null;
 
 		object IServiceProvider.Get () => instance;
+		
+		void IServiceProvider.Initialize (IScopeKey scope)
+		{
+			if (!(instance is IInitializable init))
+				return;
+
+			init.Initialize (scope);
+		}
+
 		void IDisposable.Dispose ()
 		{
 			if (!(instance is IDisposable disp))

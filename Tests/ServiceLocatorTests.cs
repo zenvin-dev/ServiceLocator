@@ -32,6 +32,21 @@ namespace Zenvin.Services.Tests
 		}
 
 		[Test]
+		public void InitializationShouldCallIInitializableImplementations ()
+		{
+			// Arrange
+			var value = false;
+			var service = new InitializableService { InitCallback = () => { value = true; } };
+
+			// Act
+			var init = ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, service));
+
+			// Assert
+			Assert.IsTrue (init, "ServiceLocator should have been initialized");
+			Assert.IsTrue (value, "Initialize Callback should have been invoked");
+		}
+
+		[Test]
 		public void ShouldHaveScopeProvider ()
 		{
 			// Arrange
@@ -39,7 +54,7 @@ namespace Zenvin.Services.Tests
 
 			// Act
 			var init = ServiceLocator.Initialize (BuildEmptyScope)
-				.WithScopeContextProvider(provider)
+				.WithScopeContextProvider (provider)
 				.WasInitialized;
 
 			// Assert
@@ -77,6 +92,25 @@ namespace Zenvin.Services.Tests
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
 			Assert.IsFalse (added, "Empty scope should not have been added");
 			Assert.AreEqual (1, ServiceLocator.ActiveScopeCount, "ServiceLocator should only contain the global scope");
+		}
+
+		[Test]
+		public void AddScopeShouldCallIInitializableImplementations ()
+		{
+			// Arrange
+			var key = new TestScopeKey (0);
+			var value = false;
+			var service = new InitializableService { InitCallback = () => { value = true; } };
+
+			// Act
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var added = ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, service));
+
+			// Assert
+			Assert.IsTrue (init, "ServiceLocator should have been initialized");
+			Assert.IsTrue (added, "Filled scope should have been added");
+			Assert.AreEqual (2, ServiceLocator.ActiveScopeCount, "ServiceLocator should contain two scopes");
+			Assert.IsTrue (value, "Initialize Callback should have been invoked");
 		}
 
 		[Test]
@@ -282,7 +316,7 @@ namespace Zenvin.Services.Tests
 			const string expectedValue = "expected";
 			const string fakeValue = "fake";
 			ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, fakeValue))
-				.WithScopeContextProvider(provider);
+				.WithScopeContextProvider (provider);
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, expectedValue));
 
 			// Act
