@@ -1,6 +1,6 @@
 namespace Zenvin.Services.Core
 {
-	public sealed partial class ServiceLocator
+	partial class ServiceLocator
 	{
 		public readonly ref struct FluentConfigurator
 		{
