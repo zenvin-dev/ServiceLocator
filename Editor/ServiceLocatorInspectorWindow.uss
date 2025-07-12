@@ -1,0 +1,13 @@
+.unity-multi-column-view__cell {
+    -unity-text-align: middle-left;
+    justify-content: center;
+}
+
+.unity-multi-column-view__cell .icon-cell {
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.unity-multi-column-view__cell .icon-cell.icon-left {
+    background-position-x: left 3px;
+    padding-left: 25px;
+}

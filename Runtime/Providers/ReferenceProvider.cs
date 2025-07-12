@@ -42,6 +42,12 @@ namespace Zenvin.Services.Providers
 			}
 		}
 
+
+		public Type GetInstanceType ()
+		{
+			return instance?.GetType ();
+		}
+
 		public override string ToString ()
 		{
 			return instance?.ToString () ?? "Missing reference.";
