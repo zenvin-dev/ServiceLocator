@@ -70,6 +70,7 @@ namespace Zenvin.Services.Core
 			var scope = builder.Build ();
 			loc = new ServiceLocator (scope);
 			scope.Initialize (null, null);
+			events?.Invoke (null);
 
 			return new FluentConfigurator (loc, true);
 		}
@@ -97,6 +98,7 @@ namespace Zenvin.Services.Core
 
 			scopes.Add (key, scope);
 			scope.Initialize (key, null);
+			events?.Invoke (key);
 			return true;
 		}
 
@@ -241,6 +243,7 @@ namespace Zenvin.Services.Core
 			loc.scopes.Clear ();
 			loc.globalScope = null;
 			loc.scopeContextProvider = null;
+			events?.Reset ();
 
 			loc = null;
 		}
