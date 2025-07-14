@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using Zenvin.Services.Exceptions;
 
 namespace Zenvin.Services.Core
@@ -285,7 +286,7 @@ namespace Zenvin.Services.Core
 			ServiceScope scope;
 			if (hasKey)
 			{
-				var visited = new HashSet<IScopeKey> ();
+				using var x = HashSetPool<IScopeKey>.Get (out var visited);
 				do
 				{
 					if (scopes.TryGetValue (scopeKey, out scope) && scope.TryGet (contractType, out instance))
@@ -338,7 +339,7 @@ namespace Zenvin.Services.Core
 
 		private static void AssertInitialized ()
 		{
-			if (loc == null)
+			if (!Initialized)
 			{
 				throw new ServiceLocatorNotInitializedException ();
 			}
