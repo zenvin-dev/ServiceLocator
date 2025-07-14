@@ -453,7 +453,7 @@ namespace Zenvin.Services.Tests
 		[TearDown]
 		public void Teardown ()
 		{
-			ServiceLocator.Reset ();
+			ServiceLocator.Dispose ();
 		}
 	}
 }

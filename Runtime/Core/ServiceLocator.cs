@@ -75,6 +75,28 @@ namespace Zenvin.Services.Core
 			return new FluentConfigurator (loc, true);
 		}
 
+		public static void Dispose ()
+		{
+			AssertInitialized ();
+
+			loc.globalScope.Dispose ();
+			var scopes = new List<KeyValuePair<IScopeKey, ServiceScope>> (loc.scopes);
+			foreach (var kvp in scopes)
+			{
+				if (kvp.Key is IDisposable keyDisposable)
+					keyDisposable.Dispose ();
+
+				kvp.Value.Dispose ();
+			}
+
+			loc.scopes.Clear ();
+			loc.globalScope = null;
+			loc.scopeContextProvider = null;
+			events?.Reset ();
+
+			loc = null;
+		}
+
 
 		public static bool AddScope (IScopeKey key, BuildServiceScopeCallback buildScopeCallback)
 		{
@@ -224,28 +246,6 @@ namespace Zenvin.Services.Core
 		{
 			AssertInitialized ();
 			return loc.TryGetInternal<TContract, TInstance> (scope, fallbackToGlobalScope, out instance, out _);
-		}
-
-
-		internal static void Reset ()
-		{
-			AssertInitialized ();
-
-			loc.globalScope.Dispose ();
-			foreach (var kvp in loc.scopes)
-			{
-				if (kvp.Key is IDisposable keyDisposable)
-					keyDisposable.Dispose ();
-
-				kvp.Value.Dispose ();
-			}
-
-			loc.scopes.Clear ();
-			loc.globalScope = null;
-			loc.scopeContextProvider = null;
-			events?.Reset ();
-
-			loc = null;
 		}
 
 
