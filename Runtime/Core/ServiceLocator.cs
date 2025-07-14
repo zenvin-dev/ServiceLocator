@@ -118,6 +118,22 @@ namespace Zenvin.Services.Core
 			if (scope.IsEmpty)
 				return false;
 
+			if (scope.ParentKey != null)
+			{
+				if (scope.ParentKey.Equals (key))
+				{
+					scope.ParentKey = null;
+				}
+				else
+				{
+					// Scope has a parent set as required, but parent scope does not exist currently
+					if (builder.constraint == ScopeRelationshipConstraint.Required && !HasScope (scope.ParentKey))
+					{
+						return false;
+					}
+				}
+			}
+
 			scopes.Add (key, scope);
 			scope.Initialize (key, null);
 			events?.Invoke (key);
@@ -133,13 +149,23 @@ namespace Zenvin.Services.Core
 		public static bool RemoveScope (IScopeKey key)
 		{
 			AssertInitialized ();
-			var scopes = loc.scopes;
 
-			if (!scopes.TryGetValue (key, out var scope))
+			//var scopes = loc.scopes;
+
+			//if (!scopes.TryGetValue (key, out var scope))
+			//	return false;
+
+			//scopes.Remove (key);
+			//scope.Dispose ();
+
+			if (key == null || !loc.scopes.ContainsKey (key))
 				return false;
 
-			scopes.Remove (key);
-			scope.Dispose ();
+			using var _ = HashSetPool<IScopeKey>.Get (out var remove);
+			remove.Add (key);
+			loc.GetScopesToRemove (remove);
+			loc.RemoveScopes (remove);
+
 			return true;
 		}
 
@@ -304,6 +330,40 @@ namespace Zenvin.Services.Core
 				return false;
 
 			return globalScope.TryGet (contractType, out instance);
+		}
+
+		private void GetScopesToRemove (HashSet<IScopeKey> remove)
+		{
+			var finished = false;
+			while (!finished)
+			{
+				finished = true;
+
+				foreach (var kvp in scopes)
+				{
+					var scope = kvp.Value;
+					var parent = scope.ParentKey;
+
+					if (!scope.HardenedDependency || parent == null)
+						continue;
+					if (!scopes.ContainsKey (parent))
+						continue;
+
+					if (remove.Add (kvp.Key))
+						continue;
+
+					finished = false;
+				}
+			}
+		}
+
+		private void RemoveScopes (HashSet<IScopeKey> keys)
+		{
+			foreach (var key in keys)
+			{
+				scopes[key].Dispose ();
+				scopes.Remove (key);
+			}
 		}
 
 		private static bool TryGetTypesException (Type contractType, Type instanceType, bool doTypeCheck, out ServiceException exception)

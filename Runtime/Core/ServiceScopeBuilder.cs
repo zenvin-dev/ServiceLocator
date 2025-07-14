@@ -11,6 +11,8 @@ namespace Zenvin.Services.Core
 
 		private bool wasBuilt;
 
+		internal ScopeRelationshipConstraint constraint;
+
 
 		private ServiceScopeBuilder ()
 		{
@@ -20,14 +22,17 @@ namespace Zenvin.Services.Core
 		internal ServiceScopeBuilder (bool isGlobal = false) : this ()
 		{
 			this.isGlobal = isGlobal;
+			constraint = ScopeRelationshipConstraint.Loose;
 		}
 
 
 		internal ServiceScope Build ()
 		{
 			wasBuilt = true;
+			scope.HardenedDependency = constraint != ScopeRelationshipConstraint.Loose;
 			return scope;
 		}
+
 
 		public ServiceScopeBuilder RegisterInstance<TInstance> (TInstance instance)
 		{
@@ -104,14 +109,20 @@ namespace Zenvin.Services.Core
 
 		public ServiceScopeBuilder SetParent (IScopeKey key)
 		{
+			return SetParent (key, ScopeRelationshipConstraint.Loose);
+		}
+
+		public ServiceScopeBuilder SetParent (IScopeKey key, ScopeRelationshipConstraint constraint)
+		{
 			AssertWasNotBuilt ();
 			if (isGlobal && key != null)
 			{
 				Debug.LogWarning ("A global scope cannot have a parent.");
 				return this;
 			}
-
+			
 			scope.ParentKey = key;
+			this.constraint = constraint;
 			return this;
 		}
 

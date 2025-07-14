@@ -15,6 +15,15 @@ namespace Zenvin.Services.Tests
 			}
 		}
 
+		public static void BuildNonEmptyScope (ServiceScopeBuilder builder, IScopeKey parent, ScopeRelationshipConstraint constraint, params object[] values)
+		{
+			builder.SetParent (parent, constraint);
+			foreach (var value in values)
+			{
+				builder.RegisterInstance (value);
+			}
+		}
+
 		public static void BuildNonEmptyScope (ServiceScopeBuilder builder, params (Type contract, object instance)[] values)
 		{
 			foreach (var value in values)
