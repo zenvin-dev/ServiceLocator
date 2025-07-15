@@ -9,7 +9,7 @@ namespace Zenvin.Services.SourceGenerator
 {
 	internal class ServiceInstallerReceiver : ISyntaxReceiver
 	{
-		public readonly List<ClassDeclarationSyntax> DependentClasses = new List<ClassDeclarationSyntax> ();
+		public readonly List<ClassDeclarationSyntax> CandidateClasses = new List<ClassDeclarationSyntax> ();
 
 
 		void ISyntaxReceiver.OnVisitSyntaxNode (SyntaxNode syntaxNode)
@@ -23,32 +23,43 @@ namespace Zenvin.Services.SourceGenerator
 				return;
 
 			// Class is not partial
-			if (!classNode.HasLeadingTrivia || !classNode.GetLeadingTrivia ().Any (trivia => trivia.IsKind (SyntaxKind.PartialKeyword)))
+			if (!classNode.Modifiers.Any (mod => mod.IsKind (SyntaxKind.PartialKeyword)))
 				return;
 
-			// Class has no attributes
-			if (classNode.AttributeLists.Count == 0)
-				return;
-
-			// Class does not have RELEVANT attribute
+			// Class does not have relevant attribute
 			if (!HasAttribute (classNode.AttributeLists, ClassAttributeName))
 				return;
 
-			DependentClasses.Add (classNode);
+			CandidateClasses.Add (classNode);
 		}
 
-		private static bool HasAttribute (SyntaxList<AttributeListSyntax> attributeLists, string attributeName)
+		private static bool HasAttribute (SyntaxList<AttributeListSyntax> lists, string attributeName)
 		{
-			return attributeLists
-			.SelectMany (al => al.Attributes)
-			.Any (attr =>
-			{
-				var name = attr.Name.ToString ();
-				return name == attributeName ||
-					   name == $"{attributeName}Attribute" ||
-					   name.EndsWith ($".{attributeName}") ||
-					   name.EndsWith ($".{attributeName}Attribute");
-			});
+			if (lists.Count == 0)
+				return false;
+
+			return lists
+				.SelectMany (list => list.Attributes)
+				.Any (attr =>
+				{
+					var name = "";
+					switch (attr.Name)
+					{
+						case IdentifierNameSyntax id:
+							name = id.Identifier.Text;
+							break;
+						case QualifiedNameSyntax qn:
+							name = qn.Right.Identifier.Text;
+							break;
+						case AliasQualifiedNameSyntax an:
+							name = an.Name.Identifier.Text;
+							break;
+						default:
+							name = attr.Name.ToString ();
+							break;
+					}
+					return name == attributeName || name == $"{attributeName}Attribute";
+				});
 		}
 	}
 }
