@@ -4,7 +4,9 @@ using IServiceProvider = Zenvin.Services.Core.IServiceProvider;
 
 namespace Zenvin.Services.Providers
 {
-	internal sealed class FactoryProvider<T> : IServiceProvider
+	internal abstract class FactoryProvider { }
+
+	internal sealed class FactoryProvider<T> : FactoryProvider, IServiceProvider
 	{
 		private readonly Func<T> factory;
 

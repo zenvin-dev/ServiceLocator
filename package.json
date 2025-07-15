@@ -2,7 +2,7 @@
 	"name": "com.zenvin.service-locator",
 	"version": "1.0.0",
 	"displayName": "Service Locator",
-	"unity": "2020.3",
+	"unity": "2023.2",
 	"author": {
 		"name": "Zenvin",
 		"email": "zenvin@outlook.de"

@@ -9,6 +9,8 @@ namespace Zenvin.Services.Core
 		private Dictionary<Type, IServiceProvider> instances;
 
 		internal IScopeKey ParentKey { get; set; }
+		internal bool HardenedDependency { get; set; }
+
 		internal bool IsEmpty => instances == null || instances.Count == 0;
 		internal IEnumerable<KeyValuePair<Type, IServiceProvider>> Instances => instances;
 

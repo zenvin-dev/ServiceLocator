@@ -3,7 +3,14 @@ guid: 771c209c1323f4248a965d85bf0ce265
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - m_ViewDataDictionary: {instanceID: 0}
+  - visualTree: {fileID: 9197481963319205126, guid: db30338b151bb1340ae7eddb31f5fab6, type: 3}
+  - styleSheet: {fileID: 7433441132597879392, guid: f070718a811c4584bbce903698a4a6f1, type: 3}
+  - modeIconSingleton: {fileID: 21300000, guid: 31a6a273b0134804eb9e1e96ae021ff7, type: 3}
+  - modeIconTransient: {fileID: 21300000, guid: 627371f1c1317b44596390c6ad30f578, type: 3}
+  - modeIconUnknown: {instanceID: 0}
+  - globalScopeIcon: {fileID: 21300000, guid: d65bdd5dd2d310541918ca33a132f14c, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

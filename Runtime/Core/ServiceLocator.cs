@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using Zenvin.Services.Exceptions;
 
 namespace Zenvin.Services.Core
@@ -69,8 +70,31 @@ namespace Zenvin.Services.Core
 			var scope = builder.Build ();
 			loc = new ServiceLocator (scope);
 			scope.Initialize (null, null);
+			events?.Invoke (null);
 
 			return new FluentConfigurator (loc, true);
+		}
+
+		public static void Dispose ()
+		{
+			AssertInitialized ();
+
+			loc.globalScope.Dispose ();
+			var scopes = new List<KeyValuePair<IScopeKey, ServiceScope>> (loc.scopes);
+			foreach (var kvp in scopes)
+			{
+				if (kvp.Key is IDisposable keyDisposable)
+					keyDisposable.Dispose ();
+
+				kvp.Value.Dispose ();
+			}
+
+			loc.scopes.Clear ();
+			loc.globalScope = null;
+			loc.scopeContextProvider = null;
+			events?.Reset ();
+
+			loc = null;
 		}
 
 
@@ -94,8 +118,25 @@ namespace Zenvin.Services.Core
 			if (scope.IsEmpty)
 				return false;
 
+			if (scope.ParentKey != null)
+			{
+				if (scope.ParentKey.Equals (key))
+				{
+					scope.ParentKey = null;
+				}
+				else
+				{
+					// Scope has a parent set as required, but parent scope does not exist currently
+					if (builder.constraint == ScopeRelationshipConstraint.Required && !HasScope (scope.ParentKey))
+					{
+						return false;
+					}
+				}
+			}
+
 			scopes.Add (key, scope);
 			scope.Initialize (key, null);
+			events?.Invoke (key);
 			return true;
 		}
 
@@ -108,13 +149,23 @@ namespace Zenvin.Services.Core
 		public static bool RemoveScope (IScopeKey key)
 		{
 			AssertInitialized ();
-			var scopes = loc.scopes;
 
-			if (!scopes.TryGetValue (key, out var scope))
+			//var scopes = loc.scopes;
+
+			//if (!scopes.TryGetValue (key, out var scope))
+			//	return false;
+
+			//scopes.Remove (key);
+			//scope.Dispose ();
+
+			if (key == null || !loc.scopes.ContainsKey (key))
 				return false;
 
-			scopes.Remove (key);
-			scope.Dispose ();
+			using var _ = HashSetPool<IScopeKey>.Get (out var remove);
+			remove.Add (key);
+			loc.GetScopesToRemove (remove);
+			loc.RemoveScopes (remove);
+
 			return true;
 		}
 
@@ -224,27 +275,6 @@ namespace Zenvin.Services.Core
 		}
 
 
-		internal static void Reset ()
-		{
-			AssertInitialized ();
-
-			loc.globalScope.Dispose ();
-			foreach (var kvp in loc.scopes)
-			{
-				if (kvp.Key is IDisposable keyDisposable)
-					keyDisposable.Dispose ();
-
-				kvp.Value.Dispose ();
-			}
-
-			loc.scopes.Clear ();
-			loc.globalScope = null;
-			loc.scopeContextProvider = null;
-
-			loc = null;
-		}
-
-
 		private bool TryGetInternal<TContract, TInstance> (
 			IScopeKey scopeKey,
 			bool fallbackToGlobalValue,
@@ -285,7 +315,7 @@ namespace Zenvin.Services.Core
 			ServiceScope scope;
 			if (hasKey)
 			{
-				var visited = new HashSet<IScopeKey> ();
+				using var x = HashSetPool<IScopeKey>.Get (out var visited);
 				do
 				{
 					if (scopes.TryGetValue (scopeKey, out scope) && scope.TryGet (contractType, out instance))
@@ -300,6 +330,40 @@ namespace Zenvin.Services.Core
 				return false;
 
 			return globalScope.TryGet (contractType, out instance);
+		}
+
+		private void GetScopesToRemove (HashSet<IScopeKey> remove)
+		{
+			var finished = false;
+			while (!finished)
+			{
+				finished = true;
+
+				foreach (var kvp in scopes)
+				{
+					var scope = kvp.Value;
+					var parent = scope.ParentKey;
+
+					if (!scope.HardenedDependency || parent == null)
+						continue;
+					if (!scopes.ContainsKey (parent))
+						continue;
+
+					if (remove.Add (kvp.Key))
+						continue;
+
+					finished = false;
+				}
+			}
+		}
+
+		private void RemoveScopes (HashSet<IScopeKey> keys)
+		{
+			foreach (var key in keys)
+			{
+				scopes[key].Dispose ();
+				scopes.Remove (key);
+			}
 		}
 
 		private static bool TryGetTypesException (Type contractType, Type instanceType, bool doTypeCheck, out ServiceException exception)
@@ -338,7 +402,7 @@ namespace Zenvin.Services.Core
 
 		private static void AssertInitialized ()
 		{
-			if (loc == null)
+			if (!Initialized)
 			{
 				throw new ServiceLocatorNotInitializedException ();
 			}

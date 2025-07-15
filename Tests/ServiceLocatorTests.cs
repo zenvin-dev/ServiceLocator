@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.IO;
+using System.Xml.Serialization;
 using Zenvin.Services.Core;
 using Zenvin.Services.Exceptions;
 using Zenvin.Services.Tests.Implementation;
@@ -10,6 +11,7 @@ namespace Zenvin.Services.Tests
 {
 	public class ServiceLocatorTests
 	{
+		// Initialization
 		[Test]
 		public void IsInitializedWithEmptyGlobalScope ()
 		{
@@ -43,7 +45,7 @@ namespace Zenvin.Services.Tests
 
 			// Assert
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
-			Assert.IsTrue (value, "Initialize Callback should have been invoked");
+			Assert.IsTrue (value, "Initialize implementation should have been invoked");
 		}
 
 		[Test]
@@ -62,6 +64,124 @@ namespace Zenvin.Services.Tests
 			Assert.AreEqual (provider, ServiceLocator.ScopeContextProvider);
 		}
 
+
+		// Events
+		[Test]
+		public void GlobalScopeInitializedShouldBeInvokedOnInitializationEarly ()
+		{
+			// Arrange
+			var value = 0;
+			ServiceLocator.Events.OnGlobalScopeInitialized ((_) => value++);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+
+			// Assert
+			Assert.AreEqual (1, value);
+		}
+
+		[Test]
+		public void GlobalScopeInitializedShouldBeInvokedOnInitializationLate ()
+		{
+			// Arrange
+			var value = 0;
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.Events.OnGlobalScopeInitialized ((_) => value++);
+
+			// Assert
+			Assert.AreEqual (1, value);
+		}
+
+		[Test]
+		public void AnyScopeInitializedShouldBeInvokedForGlobal ()
+		{
+			// Arrange
+			var value = 0;
+			ServiceLocator.Events.OnAnyScopeInitialized ((_) => value++, false);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+
+			// Assert
+			Assert.AreEqual (1, value);
+		}
+
+		[Test]
+		public void AnyScopeInitializedShouldBeInvokedForNonGlobalMultiple ()
+		{
+			// Arrange
+			var value = 0;
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.Events.OnAnyScopeInitialized ((_) => value++, false);
+			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test"));
+			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, 10));
+
+			// Assert
+			Assert.AreEqual (2, value);
+		}
+
+		[Test]
+		public void AnyScopeInitializedShouldBeInvokedForNonGlobalOnce ()
+		{
+			// Arrange
+			var value = 0;
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.Events.OnAnyScopeInitialized ((_) => value++, true);
+			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test"));
+			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, "Test"));
+
+			// Assert
+			Assert.AreEqual (1, value);
+		}
+
+		[Test]
+		public void SpecificScopeInitializedShouldBeInvokedForNonGlobal ()
+		{
+			// Arrange
+			var value = 0;
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.Events.OnScopeInitialized (key0, (_) => value++, false);
+			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test"));
+			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, 10));
+
+			// Assert
+			Assert.AreEqual (1, value);
+		}
+
+		[Test]
+		public void SpecificScopeInitializedShouldBeInvokedForNonGlobalOnce ()
+		{
+			// Arrange
+			var value = 0;
+			var key = new TestScopeKey (0);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.Events.OnScopeInitialized (key, (_) => value++, true);
+			ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
+			ServiceLocator.RemoveScope (key);
+			ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
+
+			// Assert
+			Assert.AreEqual (1, value);
+		}
+
+
+		// Scope management
 		[Test]
 		public void AddScopeShouldAddFilledScope ()
 		{
@@ -91,6 +211,23 @@ namespace Zenvin.Services.Tests
 			// Assert
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
 			Assert.IsFalse (added, "Empty scope should not have been added");
+			Assert.AreEqual (1, ServiceLocator.ActiveScopeCount, "ServiceLocator should only contain the global scope");
+		}
+
+		[Test]
+		public void AddScopeShouldNotAddScopeWithMissingRequiredParent ()
+		{
+			// Arrange
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+
+			// Act
+			var added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope(builder, key1, ScopeRelationshipConstraint.Required, "Test"));
+
+			// Assert
+			Assert.IsTrue (init, "ServiceLocator should have been initialized");
+			Assert.IsFalse (added, "Scope with missing parent should not have been added");
 			Assert.AreEqual (1, ServiceLocator.ActiveScopeCount, "ServiceLocator should only contain the global scope");
 		}
 
@@ -131,6 +268,77 @@ namespace Zenvin.Services.Tests
 			Assert.AreEqual (1, ServiceLocator.ActiveScopeCount, "ServiceLocator should only contain the global scope");
 		}
 
+		[Test]
+		public void RemoveScopeShouldCascadeSimple ()
+		{
+			// Arrange
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			var scope0Added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test 0"));
+			var scope1Added = ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 1"));
+			var scope0Removed = ServiceLocator.RemoveScope (key0);
+			var totalScopeCount = ServiceLocator.ActiveScopeCount;
+
+			// Assert
+			Assert.IsTrue (scope0Added, "scope 0 should have been added");
+			Assert.IsTrue (scope1Added, "scope 1 should have been added");
+			Assert.IsTrue (scope0Removed, "scope 0 should have been removed");
+			Assert.AreEqual (1, totalScopeCount, "scope 1 should have been removed as a dependency");
+		}
+
+		[Test]
+		public void RemoveScopeShouldCascadeDeep ()
+		{
+			// Arrange
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+			var key2 = new TestScopeKey (2);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			var scope0Added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test 0"));
+			var scope1Added = ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 1"));
+			var scope2Added = ServiceLocator.AddScope (key2, builder => BuildNonEmptyScope (builder, key1, ScopeRelationshipConstraint.Hardened, "Test 2"));
+			var scope0Removed = ServiceLocator.RemoveScope (key0);
+			var totalScopeCount = ServiceLocator.ActiveScopeCount;
+
+			// Assert
+			Assert.IsTrue (scope0Added, "scope 0 should have been added");
+			Assert.IsTrue (scope1Added, "scope 1 should have been added");
+			Assert.IsTrue (scope2Added, "scope 2 should have been added");
+			Assert.IsTrue (scope0Removed, "scope 0 should have been removed");
+			Assert.AreEqual (1, totalScopeCount, "scopes 1 and 2 should have been removed as dependencies");
+		}
+
+		[Test]
+		public void RemoveScopeShouldCascadeWide ()
+		{
+			// Arrange
+			var key0 = new TestScopeKey (0);
+			var key1 = new TestScopeKey (1);
+			var key2 = new TestScopeKey (2);
+
+			// Act
+			ServiceLocator.Initialize (BuildEmptyScope);
+			var scope0Added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test 0"));
+			var scope1Added = ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 1"));
+			var scope2Added = ServiceLocator.AddScope (key2, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 2"));
+			var scope0Removed = ServiceLocator.RemoveScope (key0);
+			var totalScopeCount = ServiceLocator.ActiveScopeCount;
+
+			// Assert
+			Assert.IsTrue (scope0Added, "scope 0 should have been added");
+			Assert.IsTrue (scope1Added, "scope 1 should have been added");
+			Assert.IsTrue (scope2Added, "scope 2 should have been added");
+			Assert.IsTrue (scope0Removed, "scope 0 should have been removed");
+			Assert.AreEqual (1, totalScopeCount, "scopes 1 and 2 should have been removed as dependencies");
+		}
+
+
+		// Accessing services
 		[Test]
 		public void TryGetReturnsExpectedValueFromGlobalScopeDirectAndInstanceType ()
 		{
@@ -328,10 +536,11 @@ namespace Zenvin.Services.Tests
 		}
 
 
+		// Utility
 		[TearDown]
 		public void Teardown ()
 		{
-			ServiceLocator.Reset ();
+			ServiceLocator.Dispose ();
 		}
 	}
 }

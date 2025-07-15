@@ -24,7 +24,14 @@ namespace Zenvin.Services.Providers
 			if (!(instance is IInitializable init))
 				return;
 
-			init.Initialize (scope);
+			try
+			{
+				init.Initialize (scope);
+			}
+			catch
+			{ 
+				// Do nothing
+			}
 		}
 
 		void IDisposable.Dispose ()
@@ -40,6 +47,12 @@ namespace Zenvin.Services.Providers
 			{
 				// Do nothing
 			}
+		}
+
+
+		public Type GetInstanceType ()
+		{
+			return instance?.GetType ();
 		}
 
 		public override string ToString ()
