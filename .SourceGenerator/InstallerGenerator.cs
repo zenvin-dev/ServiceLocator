@@ -121,8 +121,7 @@ namespace Zenvin.Services.SourceGenerator
 			foreach (var kvp in targets)
 			{
 				// If target base type is not an injection target
-				var baseType = kvp.Value.Class.BaseType?.ToDisplayString (SymbolDisplayFormat.FullyQualifiedFormat);
-				if (baseType == null || !targets.ContainsKey (baseType))
+				if (!HasInjectionTargetBaseType (targets, kvp.Value.Class, callBase))
 					continue;
 
 				// Ensure that current target calls base implementation
@@ -283,6 +282,20 @@ namespace Zenvin.Services.SourceGenerator
 				symbol = symbol.BaseType;
 			}
 
+			return false;
+		}
+
+		private static bool HasInjectionTargetBaseType (Dictionary<string, InjectClass> targets, ITypeSymbol type, HashSet<string> callBase)
+		{
+			type = type?.BaseType;
+			while (type != null)
+			{
+				var baseTypeKey = type.ToDisplayString (SymbolDisplayFormat.FullyQualifiedFormat);
+				if (baseTypeKey != null && targets.ContainsKey (baseTypeKey))
+					return true;
+
+				type = type.BaseType;
+			}
 			return false;
 		}
 
