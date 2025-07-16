@@ -29,27 +29,8 @@ namespace Zenvin.Services.SourceGenerator
 			CollectGenerationTargets (rec, comp, targets, members);
 			CollectBaseClasses (targets, callBase);
 			GenerateSources (ref context, targets, callBase);
-			GenerateDebugSource (context, targets);
 		}
 
-
-		private static void GenerateDebugSource (
-			GeneratorExecutionContext context,
-			Dictionary<string, InjectClass> targets)
-		{
-			var sb = new StringBuilder ();
-
-			sb.AppendLine ("namespace Zenvin.Services");
-			sb.AppendLine ("{");
-			sb.AppendLine ("\tpublic static class SourceGeneratorStats");
-			sb.AppendLine ("\t{");
-			sb.AppendLine ($"\t\tpublic const int TargetClassCount = {targets.Count};");
-			sb.AppendLine ($"\t\tpublic const int TargetMemberCount = {targets.Select (t => t.Value.Members.Length).Sum ()};");
-			sb.AppendLine ("\t}");
-			sb.AppendLine ("}");
-			
-			context.AddSource ("SourceGeneratorStats.g.cs", SourceText.From (sb.ToString (), Encoding.UTF8));
-		}
 
 		private static void CollectGenerationTargets (
 			ServiceInstallerReceiver rec,
