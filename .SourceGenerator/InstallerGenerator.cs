@@ -58,7 +58,7 @@ namespace Zenvin.Services.SourceGenerator
 					continue;
 
 				var target = new InjectClass (classSymbol, attrData, members.ToArray ());
-				targets[classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)] = target;
+				targets[classSymbol.ToDisplayString (SymbolDisplayFormat.FullyQualifiedFormat)] = target;
 			}
 		}
 
@@ -66,32 +66,29 @@ namespace Zenvin.Services.SourceGenerator
 			ITypeSymbol type,
 			List<InjectMember> members)
 		{
-			var properties = type.GetMembers ().OfType<IPropertySymbol> ();
-			foreach (var prop in properties)
+			var typeMembers = type.GetMembers ();
+			foreach (var member in typeMembers)
 			{
-				if (prop.IsReadOnly)
+				if (member.IsAbstract)
+					continue;
+				if (member.IsStatic)
+					continue;
+				if (member.IsExtern)
 					continue;
 
-				var attrData = prop.GetAttributes ().FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == MemberAttributeFullName);
+				var attrData = member.GetAttributes ().FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == MemberAttributeFullName);
 				if (attrData == null)
 					continue;
 
-				var inject = GetInjectMemberFromSymbol (prop, prop.Type, attrData);
-				members.Add (inject);
-			}
-
-			var fields = type.GetMembers ().OfType<IFieldSymbol> ();
-			foreach (var field in fields)
-			{
-				if (field.IsReadOnly)
-					continue;
-
-				var attrData = field.GetAttributes ().FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == MemberAttributeFullName);
-				if (attrData == null)
-					continue;
-
-				var inject = GetInjectMemberFromSymbol (field, field.Type, attrData);
-				members.Add (inject);
+				switch (member)
+				{
+					case IFieldSymbol field:
+						InjectMemberFromSymbol (field, field.Type, attrData, field.IsReadOnly, members);
+						break;
+					case IPropertySymbol property:
+						InjectMemberFromSymbol (property, property.Type, attrData, property.IsReadOnly, members);
+						break;
+				}
 			}
 		}
 
@@ -110,11 +107,16 @@ namespace Zenvin.Services.SourceGenerator
 			}
 		}
 
-		private static InjectMember GetInjectMemberFromSymbol (
+		private static void InjectMemberFromSymbol (
 			ISymbol member,
 			ITypeSymbol type,
-			AttributeData attrData)
+			AttributeData attrData,
+			bool isReadOnly,
+			List<InjectMember> members)
 		{
+			if (isReadOnly)
+				return;
+
 			bool required = true;
 			ITypeSymbol contractType = null;
 
@@ -129,7 +131,7 @@ namespace Zenvin.Services.SourceGenerator
 			TryAssignPositionalArgument (attrData.ConstructorArguments, 1, ref contractType);
 
 			var inject = new InjectMember (member, type, contractType, required);
-			return inject;
+			members.Add (inject);
 		}
 
 		private static void GenerateSources (
