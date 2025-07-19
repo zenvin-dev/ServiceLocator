@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -45,7 +44,9 @@ namespace Zenvin.Services.SourceGenerator
 				if (!(classModel.GetDeclaredSymbol (classDec) is ITypeSymbol classSymbol))
 					continue;
 
-				var attrData = classSymbol.GetAttributes ().FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == ClassAttributeFullName);
+				var attrData = classSymbol
+					.GetAttributes ()
+					.FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == AnalysisConstants.ClassAttributeFullName);
 				if (attrData == null)
 					continue;
 
@@ -76,7 +77,9 @@ namespace Zenvin.Services.SourceGenerator
 				if (member.IsExtern)
 					continue;
 
-				var attrData = member.GetAttributes ().FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == MemberAttributeFullName);
+				var attrData = member
+					.GetAttributes ()
+					.FirstOrDefault (attr => attr.AttributeClass.ToDisplayString () == AnalysisConstants.MemberAttributeFullName);
 				if (attrData == null)
 					continue;
 
@@ -122,9 +125,9 @@ namespace Zenvin.Services.SourceGenerator
 
 			foreach (var arg in attrData.NamedArguments)
 			{
-				if (TryGetNamedArgument (arg, AttrArgNameRequired, ref required))
+				if (TryGetNamedArgument (arg, AnalysisConstants.AttributeParameterNameRequired, ref required))
 					continue;
-				if (TryGetNamedArgument (arg, AttrArgNameContractType, ref contractType))
+				if (TryGetNamedArgument (arg, AnalysisConstants.AttributeParameterNameContractType, ref contractType))
 					continue;
 			}
 			TryAssignPositionalArgument (attrData.ConstructorArguments, 0, ref required);
@@ -179,25 +182,8 @@ namespace Zenvin.Services.SourceGenerator
 			sb.AppendLine ("{");
 
 
-			// Open Method
-			sb.Append (indent);
-			sb.Append ("\tprotected ");
-			if (callBase)
-				sb.Append ("new ");
-			sb.Append ("void ");
-			sb.Append (InjectServicesMethodName);
-			sb.AppendLine ("()");
-			sb.Append (indent);
-			sb.AppendLine ("\t{");
-
-
 			// Fill Method
 			GenerateMethodSource (ref target, sb, indent, callBase);
-
-
-			// Close Method
-			sb.Append (indent);
-			sb.AppendLine ("\t}");
 
 
 			// Close Class
@@ -216,37 +202,84 @@ namespace Zenvin.Services.SourceGenerator
 
 		private static void GenerateMethodSource (ref InjectClass target, StringBuilder sb, char indent, bool callBase)
 		{
+			// Open Method
+			sb.Append (indent);
+			sb.Append ("\tprotected ");
+			if (callBase)
+				sb.Append ("new ");
+			sb.Append ("void ");
+			sb.Append (InjectionConstants.MethodName);
+			sb.Append ('(');
+
+			sb.AppendFormat (
+				"global::{0} {1} = {2}",
+
+				InjectionConstants.ScopeParameterType,
+				InjectionConstants.ScopeParameterName,
+				InjectionConstants.ScopeParameterDefault
+			);
+			sb.Append (", ");
+			sb.AppendFormat (
+				"global::{0} {1} = {2}",
+
+				InjectionConstants.FallbackParameterType,
+				InjectionConstants.FallbackParameterName,
+				InjectionConstants.FallbackParameterDefault
+			);
+
+			sb.AppendLine (")");
+			sb.Append (indent);
+			sb.AppendLine ("\t{");
+
+
+			// Generate Call to Base Implementation
 			if (callBase)
 			{
 				sb.Append (indent);
-				sb.Append ("\t\tbase.");
-				sb.Append (InjectServicesMethodName);
-				sb.Append ("();");
+				sb.AppendFormat (
+					"\t\tbase.{0}({1}, {2});",
+
+					InjectionConstants.MethodName,
+					InjectionConstants.ScopeParameterName,
+					InjectionConstants.FallbackParameterName
+				);
 				sb.AppendLine ();
 			}
 
+			// Generate Calls to ServiceLocator
 			foreach (var member in target.Members)
 			{
 				sb.Append (indent);
-				sb.Append ("\t\t");
-				sb.Append (member.Member.Name);
-				sb.Append (" = global::");
-				sb.Append (ServiceLocatorType);
-				sb.Append ('.');
-				sb.Append (GetMethodName);
-				sb.Append ('<');
+				sb.AppendFormat (
+					"\t\t{0} = global::{1}.{2}<",
+
+					member.Member.Name,
+					IntegrationConstants.ServiceLocatorType,
+					IntegrationConstants.GetMethodName
+				);
 				if (member.ContractType != null)
 				{
 					sb.Append (member.ContractType.ToDisplayString (SymbolDisplayFormat.FullyQualifiedFormat));
 					sb.Append (", ");
 				}
-				sb.Append (member.Type.ToDisplayString (SymbolDisplayFormat.FullyQualifiedFormat));
-				sb.Append (">(");
-				sb.Append (RequiredArgumentName);
-				sb.Append (": ");
-				sb.Append (member.Required ? "true" : "false");
-				sb.AppendLine (");");
+				sb.AppendFormat (
+					"{0}>({1}: {2}, {3}: {4}, {5}: {6});",
+
+					member.Type.ToDisplayString (SymbolDisplayFormat.FullyQualifiedFormat),
+					IntegrationConstants.ScopeArgumentName,
+					InjectionConstants.ScopeParameterName,
+					IntegrationConstants.FallbackArgumentName,
+					InjectionConstants.FallbackParameterName,
+					IntegrationConstants.RequiredArgumentName,
+					member.Required ? "true" : "false"
+				);
+				sb.AppendLine ();
 			}
+
+
+			// Close Method
+			sb.Append (indent);
+			sb.AppendLine ("\t}");
 		}
 
 

@@ -27,7 +27,7 @@ namespace Zenvin.Services.SourceGenerator
 				return;
 
 			// Class does not have relevant attribute
-			if (!HasAttribute (classNode.AttributeLists, ClassAttributeName))
+			if (!HasAttribute (classNode.AttributeLists, AnalysisConstants.ClassAttributeName))
 				return;
 
 			CandidateClasses.Add (classNode);
