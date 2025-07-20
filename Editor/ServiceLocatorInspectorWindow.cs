@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Zenvin.Services.Core;
 using Zenvin.Services.Providers;
-using IServiceProvider = Zenvin.Services.Core.IServiceProvider;
 
 namespace Zenvin.Services
 {
@@ -316,6 +315,6 @@ namespace Zenvin.Services
 		public IScopeKey Key { get; set; }
 		public ServiceScope Scope { get; set; }
 		public Type ContractType { get; set; }
-		public IServiceProvider Provider { get; set; }
+		public IServiceInstanceProvider Provider { get; set; }
 	}
 }

@@ -1,10 +1,9 @@
 using System;
 using Zenvin.Services.Core;
-using IServiceProvider = Zenvin.Services.Core.IServiceProvider;
 
 namespace Zenvin.Services.Providers
 {
-	internal sealed class ReferenceProvider : IServiceProvider
+	internal sealed class ReferenceProvider : IServiceInstanceProvider
 	{
 		private readonly object instance;
 
@@ -15,11 +14,11 @@ namespace Zenvin.Services.Providers
 		}
 
 
-		bool IServiceProvider.IsValid => instance != null;
+		bool IServiceInstanceProvider.IsValid => instance != null;
 
-		object IServiceProvider.Get () => instance;
+		object IServiceInstanceProvider.Get () => instance;
 		
-		void IServiceProvider.Initialize (IScopeKey scope)
+		void IServiceInstanceProvider.Initialize (IScopeKey scope)
 		{
 			if (!(instance is IInitializable init))
 				return;

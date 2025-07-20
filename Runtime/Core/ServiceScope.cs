@@ -6,13 +6,13 @@ namespace Zenvin.Services.Core
 {
 	internal class ServiceScope : IDisposable
 	{
-		private Dictionary<Type, IServiceProvider> instances;
+		private Dictionary<Type, IServiceInstanceProvider> instances;
 
 		internal IScopeKey ParentKey { get; set; }
 		internal bool HardenedDependency { get; set; }
 
 		internal bool IsEmpty => instances == null || instances.Count == 0;
-		internal IEnumerable<KeyValuePair<Type, IServiceProvider>> Instances => instances;
+		internal IEnumerable<KeyValuePair<Type, IServiceInstanceProvider>> Instances => instances;
 
 
 		public void Initialize (IScopeKey scope, ILogger logger)
@@ -44,14 +44,14 @@ namespace Zenvin.Services.Core
 			}
 		}
 
-		public bool Add (Type contractType, IServiceProvider provider)
+		public bool Add (Type contractType, IServiceInstanceProvider provider)
 		{
 			if (contractType == null)
 				return false;
 			if (provider == null)
 				return false;
 
-			instances ??= new Dictionary<Type, IServiceProvider> (1);
+			instances ??= new Dictionary<Type, IServiceInstanceProvider> (1);
 
 #if UNITY_2021_OR_NEWER
 			return instances.TryAdd(contractType, provider);

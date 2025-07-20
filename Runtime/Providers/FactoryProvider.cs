@@ -1,12 +1,11 @@
 using System;
 using Zenvin.Services.Core;
-using IServiceProvider = Zenvin.Services.Core.IServiceProvider;
 
 namespace Zenvin.Services.Providers
 {
 	internal abstract class FactoryProvider { }
 
-	internal sealed class FactoryProvider<T> : FactoryProvider, IServiceProvider
+	internal sealed class FactoryProvider<T> : FactoryProvider, IServiceInstanceProvider
 	{
 		private readonly Func<T> factory;
 
@@ -17,10 +16,10 @@ namespace Zenvin.Services.Providers
 		}
 
 
-		bool IServiceProvider.IsValid => factory != null;
+		bool IServiceInstanceProvider.IsValid => factory != null;
 
-		object IServiceProvider.Get () => factory.Invoke ();
-		void IServiceProvider.Initialize (IScopeKey scope) { }
+		object IServiceInstanceProvider.Get () => factory.Invoke ();
+		void IServiceInstanceProvider.Initialize (IScopeKey scope) { }
 		void IDisposable.Dispose () { }
 
 		public override string ToString ()

@@ -2,7 +2,7 @@ using System;
 
 namespace Zenvin.Services.Core
 {
-	internal interface IServiceProvider : IDisposable
+	internal interface IServiceInstanceProvider : IDisposable
 	{
 		bool IsValid { get; }
 
