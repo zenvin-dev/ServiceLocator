@@ -127,6 +127,33 @@ namespace Zenvin.Services.Core
 		}
 
 
+		internal ServiceScopeBuilder RegisterProviderRaw<TInstance> (IServiceInstanceProvider provider)
+		{
+			return RegisterProviderRaw<TInstance, TInstance> (provider);
+		}
+
+		internal ServiceScopeBuilder RegisterProviderRaw<TContract, TInstance> (IServiceInstanceProvider provider)
+			where TInstance : TContract
+		{
+			AssertWasNotBuilt ();
+			if (provider != null)
+			{
+				scope.Add (typeof(TContract), provider);
+			}
+			return this;
+		}
+
+		internal ServiceScopeBuilder RegisterProviderRaw (Type contractType, IServiceInstanceProvider provider)
+		{
+			AssertWasNotBuilt ();
+			if (contractType != null && provider != null)
+			{
+				scope.Add (contractType, provider);
+			}
+			return this;
+		}
+
+
 		private void AssertWasNotBuilt ()
 		{
 			if (wasBuilt)
