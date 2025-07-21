@@ -107,6 +107,35 @@ namespace Zenvin.Services.Core
 		}
 
 
+		public ServiceScopeBuilder RegisterLazy<TInstance> (Func<TInstance> initializer)
+		{
+			return RegisterLazy<TInstance, TInstance> (initializer);
+		}
+
+		public ServiceScopeBuilder RegisterLazy<TContract, TInstance> (Func<TInstance> initializer)
+			where TInstance : TContract
+		{
+			AssertWasNotBuilt ();
+			if (initializer != null)
+			{
+				var provider = new LazyProvider<TInstance> (initializer);
+				RegisterProviderRaw (typeof(TContract), provider);
+			}
+			return this;
+		}
+
+		public ServiceScopeBuilder RegisterLazy (Type contractType, Func<object> initializer)
+		{
+			AssertWasNotBuilt ();
+			if (contractType != null && initializer != null)
+			{
+				var provider = new LazyProvider<object> (initializer);
+				RegisterProviderRaw (contractType, provider);
+			}
+			return this;
+		}
+
+
 		public ServiceScopeBuilder SetParent (IScopeKey key)
 		{
 			return SetParent (key, ScopeRelationshipConstraint.Loose);
