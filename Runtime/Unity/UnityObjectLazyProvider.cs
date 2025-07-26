@@ -34,7 +34,8 @@ namespace Zenvin.Services.Unity
 
 		public override string ToString ()
 		{
-			return $"UnityLazy<{typeof (T).FullName}, {prefab}>";
+			var ins = instance == null ? "[pending]" : instance.GetType ().FullName;
+			return $"UnityLazy<{typeof(T).FullName}, {prefab}, {ins}>";
 		}
 	}
 }
