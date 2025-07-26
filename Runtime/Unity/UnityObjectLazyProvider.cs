@@ -1,32 +1,40 @@
 using System;
-using UnityEditor;
-using UnityEngine;
 using Zenvin.Services.Core;
 using Object = UnityEngine.Object;
 
 namespace Zenvin.Services.Unity
 {
-	internal class UnityObjectFactoryProvider<T> : IServiceInstanceProvider
+	internal class UnityObjectLazyProvider<T> : IServiceInstanceProvider
 		where T : Object
 	{
 		private readonly T prefab;
+		private T instance;
 
 
-		public UnityObjectFactoryProvider (T prefab)
+		public UnityObjectLazyProvider (T prefab)
 		{
 			this.prefab = prefab;
 		}
 
 
 		bool IServiceInstanceProvider.IsValid => prefab != null;
-		object IServiceInstanceProvider.Get () => Object.Instantiate (prefab);
+
+
+		object IServiceInstanceProvider.Get ()
+		{
+			if (instance == null && prefab != null)
+				instance = Object.Instantiate (prefab);
+
+			return instance;
+		}
+
 		void IServiceInstanceProvider.Initialize (IScopeKey scope) { }
 		void IDisposable.Dispose () { }
 
 
 		public override string ToString ()
 		{
-			return $"UnityFactory<{typeof (T).FullName}, {prefab}>";
+			return $"UnityLazy<{typeof (T).FullName}, {prefab}>";
 		}
 	}
 }
