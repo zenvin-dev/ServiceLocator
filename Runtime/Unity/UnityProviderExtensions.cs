@@ -30,24 +30,34 @@ namespace Zenvin.Services.Unity
 		}
 
 
-		public static ServiceScopeBuilder RegisterLazy<TInstance> (this ServiceScopeBuilder builder, TInstance prefab)
+		public static ServiceScopeBuilder RegisterLazy<TInstance> (
+			this ServiceScopeBuilder builder,
+			TInstance prefab,
+			bool dontDestroyOnLoad = false)
 			where TInstance : Object
 		{
 
-			return RegisterLazy (builder, typeof (TInstance), prefab);
+			return RegisterLazy (builder, typeof (TInstance), prefab, dontDestroyOnLoad);
 		}
 
-		public static ServiceScopeBuilder RegisterLazy<TContract, TInstance> (this ServiceScopeBuilder builder, TInstance prefab)
+		public static ServiceScopeBuilder RegisterLazy<TContract, TInstance> (
+			this ServiceScopeBuilder builder,
+			TInstance prefab,
+			bool dontDestroyOnLoad = false)
 			where TInstance : Object, TContract
 		{
-			return RegisterLazy (builder, typeof (TContract), prefab);
+			return RegisterLazy (builder, typeof (TContract), prefab, dontDestroyOnLoad);
 		}
 
-		public static ServiceScopeBuilder RegisterLazy (this ServiceScopeBuilder builder, Type contractType, Object prefab)
+		public static ServiceScopeBuilder RegisterLazy (
+			this ServiceScopeBuilder builder,
+			Type contractType,
+			Object prefab,
+			bool dontDestroyOnLoad = false)
 		{
 			if (prefab != null)
 			{
-				var provider = new UnityObjectLazyProvider<Object> (prefab);
+				var provider = new UnityObjectLazyProvider<Object> (prefab, dontDestroyOnLoad);
 				builder.RegisterProviderRaw (contractType, provider);
 			}
 			return builder;
