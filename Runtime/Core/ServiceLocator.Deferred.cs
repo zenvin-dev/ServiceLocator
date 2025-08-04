@@ -22,105 +22,6 @@ namespace Zenvin.Services.Core
 			get => events ??= new ScopeEvents ();
 		}
 
-		//private static ScopeInitializedCallback globalTemporaryCallbacks;
-		//private static readonly Dictionary<IScopeKey, ScopeInitializedCallback> temporaryCallbacks = new Dictionary<IScopeKey, ScopeInitializedCallback> ();
-
-		///// <summary>
-		///// Fired whenever a new scope is initialized.<br></br>
-		///// If the scope in question was the global scope, the <c>key</c> will be <see langword="null"/>.
-		///// </summary>
-		//public static event ScopeInitializedCallback ScopeInitialized;
-
-
-		///// <summary>
-		///// Register a temporary callback that will be invoked when a scope with the given key is created.
-		///// </summary>
-		///// <remarks>
-		///// If a scope with the given key did already exist, the callback will be invoked immediately.<br></br>
-		///// If the given key is <see langword="null"/>, the callback will be invoked for the global scope.
-		///// </remarks>
-		///// <param name="callback">The callback to register. Must not be <see langword="null"/>.</param>
-		///// <param name="filter">The key of the scope to invoke the callback for.</param>
-		//public static void AddTemporaryScopeCallback (ScopeInitializedCallback callback, IScopeKey filter = null)
-		//{
-		//	if (callback == null)
-		//		return;
-
-		//	if (filter == null)
-		//	{
-		//		if (Initialized)
-		//		{
-		//			callback.Invoke (null);
-		//		}
-		//		else
-		//		{
-		//			globalTemporaryCallbacks += callback;
-		//		}
-		//		return;
-		//	}
-
-		//	if (filter != null && Initialized && loc.scopes.ContainsKey (filter))
-		//	{
-		//		callback.Invoke (filter);
-		//		return;
-		//	}
-
-		//	if (temporaryCallbacks.ContainsKey (filter))
-		//	{
-		//		temporaryCallbacks[filter] += callback;
-		//		return;
-		//	}
-		//	temporaryCallbacks[filter] = callback;
-		//}
-
-		///// <summary>
-		///// Unregister a temporary callback that would have been invoked if a scope with the given key was created.
-		///// </summary>
-		///// <param name="callback">The callback to unregister. Must not be <see langword="null"/>.</param>
-		///// <param name="filter">The key of the scope to invoke the callback for.</param>
-		//public static void RemoveTemporaryScopeCallback (ScopeInitializedCallback callback, IScopeKey filter = null)
-		//{
-		//	if (callback == null)
-		//		return;
-
-		//	if (filter == null)
-		//	{
-		//		globalTemporaryCallbacks -= callback;
-		//		return;
-		//	}
-		//	if (temporaryCallbacks.ContainsKey (filter))
-		//	{
-		//		temporaryCallbacks[filter] -= callback;
-		//	}
-		//}
-
-
-		//private static void InvokeScopeInitialized (IScopeKey scope)
-		//{
-		//	ScopeInitialized?.Invoke (scope);
-
-		//	if (scope == null)
-		//	{
-		//		globalTemporaryCallbacks?.Invoke (null);
-		//		globalTemporaryCallbacks = null;
-		//		return;
-		//	}
-
-		//	if (temporaryCallbacks.TryGetValue (scope, out var callback))
-		//	{
-		//		callback?.Invoke (scope);
-		//		temporaryCallbacks.Remove (scope);
-		//		return;
-		//	}
-		//}
-
-		//private static void ResetCallbacks ()
-		//{
-		//	ScopeInitialized = null;
-		//	globalTemporaryCallbacks = null;
-		//	temporaryCallbacks.Clear ();
-		//}
-
 
 		/// <summary>
 		/// Class representing a collection of events related to service scopes.<br></br>
@@ -140,6 +41,14 @@ namespace Zenvin.Services.Core
 			}
 
 
+			/// <summary>
+			/// Register a callback that will be invoked when the global scope is initialized.
+			/// </summary>
+			/// <remarks>
+			/// If the global scope was already initialized, the callback will be invoked immediately.<br></br>
+			/// If the given key is <see langword="null"/>, the callback will be invoked for the global scope.
+			/// </remarks>
+			/// <param name="callback">The callback to register. Must not be <see langword="null"/>.</param>
 			public ScopeEvents OnGlobalScopeInitialized (ScopeInitializedCallback callback)
 			{
 				if (callback == null)
@@ -155,6 +64,10 @@ namespace Zenvin.Services.Core
 				return this;
 			}
 
+			/// <summary>
+			/// Unregister a callback that would have been invoked when the global scope was initialized.
+			/// </summary>
+			/// <param name="callback">The callback to unregister. Must not be <see langword="null"/>.</param>
 			public ScopeEvents OffGlobalScopeInitialized (ScopeInitializedCallback callback)
 			{
 				if (callback != null)
@@ -164,6 +77,12 @@ namespace Zenvin.Services.Core
 				return this;
 			}
 
+			/// <summary>
+			/// Register a callback that will be invoked when any scope (global or keyed) is created. <br></br>
+			/// The callback will <b>not</b> immediately be invoked if the global scope as initialized already.
+			/// </summary>
+			/// <param name="callback">The callback to register. Must not be <see langword="null"/>.</param>
+			/// <param name="once">If set to <see langword="true"/>, the <paramref name="callback"/> will be unsubscribed after it has been invoked.</param>
 			public ScopeEvents OnAnyScopeInitialized (ScopeInitializedCallback callback, bool once)
 			{
 				if (callback == null)
@@ -180,6 +99,14 @@ namespace Zenvin.Services.Core
 				return this;
 			}
 
+			/// <summary>
+			/// Unregister a callback that would have been invoked if any scope with the given key was created.
+			/// </summary>
+			/// <param name="callback">The callback to unregister. Must not be <see langword="null"/>.</param>
+			/// <param name="once">
+			/// If <see langword="null"/>, the callback will be unsubscribed, no matter whether it was temporary or persistent.<br></br>
+			/// Otherwise, the callback will only be unsubscribed from either the temporary (<see langword="true"/>) or persistent (<see langword="false"/>) event.
+			/// </param>
 			public ScopeEvents OffAnyScopeInitialized (ScopeInitializedCallback callback, bool? once)
 			{
 				if (callback == null)
@@ -193,6 +120,15 @@ namespace Zenvin.Services.Core
 				return this;
 			}
 
+			/// <summary>
+			/// Register a callback that will be invoked when a scope with the given key is created.
+			/// </summary>
+			/// <remarks>
+			/// If a scope with the given key did already exist, the callback will be invoked immediately.
+			/// </remarks>
+			/// <param name="scope">The key of the scope to invoke the callback for.</param>
+			/// <param name="callback">The callback to register. Must not be <see langword="null"/>.</param>
+			/// <param name="once">If set to <see langword="true"/>, the <paramref name="callback"/> will be unsubscribed after it has been invoked.</param>
 			public ScopeEvents OnScopeInitialized (IScopeKey scope, ScopeInitializedCallback callback, bool once)
 			{
 				if (scope == null || callback == null)
@@ -216,6 +152,15 @@ namespace Zenvin.Services.Core
 				return this;
 			}
 
+			/// <summary>
+			/// Unregister a callback that would have been invoked if a scope with the given key was created.
+			/// </summary>
+			/// <param name="scope">The key of the scope to invoke the callback for.</param>
+			/// <param name="callback">The callback to unregister. Must not be <see langword="null"/>.</param>
+			/// <param name="once">
+			/// If <see langword="null"/>, the callback will be unsubscribed, no matter whether it was temporary or persistent.<br></br>
+			/// Otherwise, the callback will only be unsubscribed from either the temporary (<see langword="true"/>) or persistent (<see langword="false"/>) event.
+			/// </param>
 			public ScopeEvents OffScopeInitialized (IScopeKey scope, ScopeInitializedCallback callback, bool? once)
 			{
 				if (scope == null || callback == null)
