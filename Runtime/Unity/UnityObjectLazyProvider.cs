@@ -29,8 +29,6 @@ namespace Zenvin.Services.Unity
 			return instance;
 		}
 
-		void IServiceInstanceProvider.Initialize (IScopeKey scope) { }
-
 		void IDisposable.Dispose ()
 		{
 			if (instance == null)

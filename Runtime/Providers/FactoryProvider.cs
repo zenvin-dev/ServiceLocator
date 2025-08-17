@@ -19,7 +19,6 @@ namespace Zenvin.Services.Providers
 		bool IServiceInstanceProvider.IsValid => factory != null;
 
 		object IServiceInstanceProvider.Get () => factory.Invoke ();
-		void IServiceInstanceProvider.Initialize (IScopeKey scope) { }
 		void IDisposable.Dispose () { }
 
 		public override string ToString ()

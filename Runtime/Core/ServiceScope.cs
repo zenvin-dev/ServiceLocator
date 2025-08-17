@@ -20,15 +20,27 @@ namespace Zenvin.Services.Core
 			if (IsEmpty)
 				return;
 
-			foreach (var provider in instances)
+			foreach (var provider in instances.Values)
 			{
 				try
 				{
-					provider.Value.Initialize (scope);
+					provider.Initialize (scope);
 				}
 				catch (Exception e)
 				{
-					logger?.LogException (new Exception("Error while initializing service.", e));
+					logger?.LogException (new Exception ("Error while initializing service.", e));
+				}
+			}
+
+			foreach (var provider in instances.Values)
+			{
+				try
+				{
+					provider.InitializeLate (scope);
+				}
+				catch (Exception e)
+				{
+					logger?.LogException (new Exception ("Error while late-initializing service.", e));
 				}
 			}
 		}

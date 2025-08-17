@@ -25,7 +25,6 @@ namespace Zenvin.Services.Providers
 			return instance;
 		}
 
-		void IServiceInstanceProvider.Initialize (IScopeKey scope) { }
 		void IDisposable.Dispose () { }
 
 		public override string ToString ()

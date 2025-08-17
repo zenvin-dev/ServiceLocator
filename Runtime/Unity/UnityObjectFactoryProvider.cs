@@ -20,7 +20,6 @@ namespace Zenvin.Services.Unity
 
 		bool IServiceInstanceProvider.IsValid => prefab != null;
 		object IServiceInstanceProvider.Get () => Object.Instantiate (prefab);
-		void IServiceInstanceProvider.Initialize (IScopeKey scope) { }
 		void IDisposable.Dispose () { }
 
 

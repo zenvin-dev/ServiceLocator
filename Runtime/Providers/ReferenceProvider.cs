@@ -33,6 +33,21 @@ namespace Zenvin.Services.Providers
 			}
 		}
 
+		void IServiceInstanceProvider.InitializeLate (IScopeKey scope)
+		{
+			if (!(instance is ILateInitializable init))
+				return;
+
+			try
+			{
+				init.InitializeLate (scope);
+			}
+			catch
+			{ 
+				// Do nothing
+			}
+		}
+
 		void IDisposable.Dispose ()
 		{
 			if (!(instance is IDisposable disp))
