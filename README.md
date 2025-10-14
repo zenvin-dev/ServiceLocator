@@ -119,7 +119,7 @@ Likewise if the given key already had a scope associated with it.
 
 ### Parented Scope Setup
 Scopes can be assigned a parent, to influence the behaviour of the `ServiceLocator` when attempting to retrieve a Service. \
-To add a parent to a Scope, use the `SetParent()` method on the `ServiceScopeBuilder` passed to the build callback. \
+To add a parent to a Scope, use the `SetParent()` method on the `ServiceScopeBuilder` passed to the build callback.
 
 > [!NOTE]
 > The Global Scope **can not** have a parent, and attempting to assign one will only result in a warning.

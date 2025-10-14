@@ -1,0 +1,16 @@
+{
+    "name": "Zenvin.ServiceLocator.Unity",
+    "rootNamespace": "Zenvin.ServiceLocator.Unity",
+    "references": [
+        "GUID:1225563da49975440ac7c70d6bfa82ad"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
