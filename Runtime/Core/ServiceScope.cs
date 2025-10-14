@@ -16,7 +16,7 @@ namespace Zenvin.Services.Core
 		internal int Count => instances.Count;
 
 
-		public void Initialize (IScopeKey scope, ILogger logger)
+		public void Initialize (IScopeKey scope, ILogger logger, bool disableLateInitialization)
 		{
 			if (IsEmpty)
 				return;
@@ -32,6 +32,9 @@ namespace Zenvin.Services.Core
 					logger?.LogError (new Exception ("Error while initializing service.", e));
 				}
 			}
+
+			if (disableLateInitialization)
+				return;
 
 			foreach (var provider in instances.Values)
 			{

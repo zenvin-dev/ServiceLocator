@@ -13,6 +13,7 @@ namespace Zenvin.Services.Core
 		private bool wasBuilt;
 
 		internal ScopeRelationshipConstraint constraint;
+		internal bool disableLateInitialization = false;
 
 
 		private ServiceScopeBuilder ()
@@ -155,6 +156,13 @@ namespace Zenvin.Services.Core
 			
 			scope.ParentKey = key;
 			this.constraint = constraint;
+			return this;
+		}
+
+
+		public ServiceScopeBuilder DisableLateInitialization ()
+		{
+			disableLateInitialization = true;
 			return this;
 		}
 
