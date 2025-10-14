@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 using Zenvin.Services.Providers;
 
 namespace Zenvin.Services.Core
@@ -146,7 +145,6 @@ namespace Zenvin.Services.Core
 			AssertWasNotBuilt ();
 			if (isGlobal && key != null)
 			{
-				Debug.LogWarning ("A global scope cannot have a parent.");
 				return this;
 			}
 			

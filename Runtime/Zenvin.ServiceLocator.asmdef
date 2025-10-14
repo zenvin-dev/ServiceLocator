@@ -1,8 +1,7 @@
 {
     "name": "Zenvin.ServiceLocator",
     "rootNamespace": "Zenvin.ServiceLocator",
-    "references": [
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -11,5 +10,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

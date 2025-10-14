@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Zenvin.Services.Utility;
 
 namespace Zenvin.Services.Core
 {
@@ -28,7 +28,7 @@ namespace Zenvin.Services.Core
 				}
 				catch (Exception e)
 				{
-					logger?.LogException (new Exception ("Error while initializing service.", e));
+					logger?.LogError (new Exception ("Error while initializing service.", e));
 				}
 			}
 
@@ -40,7 +40,7 @@ namespace Zenvin.Services.Core
 				}
 				catch (Exception e)
 				{
-					logger?.LogException (new Exception ("Error while late-initializing service.", e));
+					logger?.LogError (new Exception ("Error while late-initializing service.", e));
 				}
 			}
 		}
