@@ -14,6 +14,7 @@ namespace Zenvin.Services.Core
 		private readonly Dictionary<IScopeKey, ServiceScope> scopes;
 		private ServiceScope globalScope;
 		private IScopeContextProvider scopeContextProvider;
+		private ILogger logger;
 
 
 		public static IScopeContextProvider ScopeContextProvider
@@ -79,6 +80,7 @@ namespace Zenvin.Services.Core
 			loc.scopeContextProvider = null;
 			events?.Reset ();
 
+			loc.logger?.LogDebug ("Disposed ServiceLocator");
 			loc = null;
 		}
 
@@ -101,7 +103,7 @@ namespace Zenvin.Services.Core
 
 			var scope = builder.Build ();
 			if (scope.IsEmpty)
-				return false;
+				return loc.logger.LogWarningPassing ("Built scope was empty and will not be added", false);
 
 			if (scope.ParentKey != null)
 			{
@@ -114,14 +116,16 @@ namespace Zenvin.Services.Core
 					// Scope has a parent set as required, but parent scope does not exist currently
 					if (builder.constraint == ScopeRelationshipConstraint.Required && !HasScope (scope.ParentKey))
 					{
-						return false;
+						return loc.logger.LogWarningPassing ("Scope requires a parent that does not exist; it will not be added", false);
 					}
 				}
 			}
 
 			scopes.Add (key, scope);
-			scope.Initialize (key, null);
+			scope.Initialize (key, null, builder.disableLateInitialization);
 			events?.Invoke (key);
+			loc.logger?.LogDebug ($"Added scope {key} with {scope.Count} services");
+
 			return true;
 		}
 
@@ -143,6 +147,7 @@ namespace Zenvin.Services.Core
 			loc.GetScopesToRemove (remove);
 			loc.RemoveScopes (remove);
 
+			loc.logger?.LogDebug ($"Removed {remove.Count} scopes, originating from {key}");
 			return true;
 		}
 
@@ -262,7 +267,10 @@ namespace Zenvin.Services.Core
 
 			scope.Initialize (null, logger, builder.disableLateInitialization);
 			events?.Invoke (null);
+
+			logger?.LogDebug ("Initialized ServiceLocator");
 		}
+
 		private bool TryGetInternal<TContract, TInstance> (
 			IScopeKey scopeKey,
 			bool fallbackToGlobalValue,
@@ -401,6 +409,8 @@ namespace Zenvin.Services.Core
 			if (!Initialized)
 				return true;
 
+			var ex = new InvalidOperationException ("The ServiceLocator has already been initialized.");
+			logger?.LogError (ex);
 			return false;
 		}
 	}

@@ -13,6 +13,7 @@ namespace Zenvin.Services.Core
 
 		internal bool IsEmpty => instances == null || instances.Count == 0;
 		internal IEnumerable<KeyValuePair<Type, IServiceInstanceProvider>> Instances => instances;
+		internal int Count => instances.Count;
 
 
 		public void Initialize (IScopeKey scope, ILogger logger)

@@ -1,5 +1,6 @@
 using System;
 using Zenvin.Services.Providers;
+using Zenvin.Services.Utility;
 
 namespace Zenvin.Services.Core
 {
@@ -7,6 +8,7 @@ namespace Zenvin.Services.Core
 	{
 		private readonly ServiceScope scope;
 		private readonly bool isGlobal;
+		private readonly ILogger logger;
 
 		private bool wasBuilt;
 
@@ -18,9 +20,11 @@ namespace Zenvin.Services.Core
 			scope = new ServiceScope ();
 		}
 
-		internal ServiceScopeBuilder (bool isGlobal = false) : this ()
+		internal ServiceScopeBuilder (bool isGlobal = false, ILogger logger = null) : this ()
 		{
 			this.isGlobal = isGlobal;
+			this.logger = logger;
+
 			constraint = ScopeRelationshipConstraint.Loose;
 		}
 
@@ -145,6 +149,7 @@ namespace Zenvin.Services.Core
 			AssertWasNotBuilt ();
 			if (isGlobal && key != null)
 			{
+				logger?.LogWarning ("A global scope cannot have a parent.");
 				return this;
 			}
 			

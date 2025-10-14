@@ -7,6 +7,7 @@ namespace Zenvin.Services.Core
 		public class Initializer
 		{
 			private BuildServiceScopeCallback callback;
+			private ILogger logger;
 			private IScopeContextProvider contextProvider;
 
 
@@ -16,6 +17,12 @@ namespace Zenvin.Services.Core
 			public Initializer WithGlobalScopeCallback (BuildServiceScopeCallback callback)
 			{
 				this.callback = callback;
+				return this;
+			}
+
+			public Initializer WithLogger (ILogger logger)
+			{
+				this.logger = logger;
 				return this;
 			}
 
