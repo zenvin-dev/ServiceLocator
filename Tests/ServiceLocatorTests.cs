@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using System;
 using System.IO;
-using System.Xml.Serialization;
 using Zenvin.Services.Core;
 using Zenvin.Services.Exceptions;
 using Zenvin.Services.Tests.Implementation;
@@ -16,7 +15,9 @@ namespace Zenvin.Services.Tests
 		public void IsInitializedWithEmptyGlobalScope ()
 		{
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var init = ServiceLocator.GetInitializer ()
+				.WithGlobalScopeCallback (BuildEmptyScope)
+				.Execute ();
 
 			// Assert
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
@@ -25,9 +26,13 @@ namespace Zenvin.Services.Tests
 		[Test]
 		public void CannotBeInitializedTwice ()
 		{
+			// Arrange
+			var initializer = ServiceLocator.GetInitializer ()
+				.WithGlobalScopeCallback (BuildEmptyScope);
+
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			initializer.Execute ();
+			var init = initializer.Execute ();
 
 			// Assert
 			Assert.IsFalse (init, "ServiceLocator should not be initialized twice");
@@ -41,7 +46,9 @@ namespace Zenvin.Services.Tests
 			var service = new InitializableService { InitCallback = () => { value = true; } };
 
 			// Act
-			var init = ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, service));
+			var init = ServiceLocator.GetInitializer ()
+				.WithGlobalScopeCallback (builder => BuildNonEmptyScope (builder, service))
+				.Execute ();
 
 			// Assert
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
@@ -55,9 +62,10 @@ namespace Zenvin.Services.Tests
 			var provider = new TestScopeProvider ();
 
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope)
+			var init = ServiceLocator.GetInitializer ()
+				.WithGlobalScopeCallback (BuildEmptyScope)
 				.WithScopeContextProvider (provider)
-				.WasInitialized;
+				.Execute ();
 
 			// Assert
 			Assert.IsTrue (init);
@@ -74,7 +82,7 @@ namespace Zenvin.Services.Tests
 			ServiceLocator.Events.OnGlobalScopeInitialized ((_) => value++);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Assert
 			Assert.AreEqual (1, value);
@@ -87,7 +95,7 @@ namespace Zenvin.Services.Tests
 			var value = 0;
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.Events.OnGlobalScopeInitialized ((_) => value++);
 
 			// Assert
@@ -102,7 +110,7 @@ namespace Zenvin.Services.Tests
 			ServiceLocator.Events.OnAnyScopeInitialized ((_) => value++, false);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Assert
 			Assert.AreEqual (1, value);
@@ -117,7 +125,7 @@ namespace Zenvin.Services.Tests
 			var key1 = new TestScopeKey (1);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.Events.OnAnyScopeInitialized ((_) => value++, false);
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test"));
 			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, 10));
@@ -135,7 +143,7 @@ namespace Zenvin.Services.Tests
 			var key1 = new TestScopeKey (1);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.Events.OnAnyScopeInitialized ((_) => value++, true);
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test"));
 			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, "Test"));
@@ -153,7 +161,7 @@ namespace Zenvin.Services.Tests
 			var key1 = new TestScopeKey (1);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.Events.OnScopeInitialized (key0, (_) => value++, false);
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test"));
 			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, 10));
@@ -170,7 +178,7 @@ namespace Zenvin.Services.Tests
 			var key = new TestScopeKey (0);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.Events.OnScopeInitialized (key, (_) => value++, true);
 			ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
 			ServiceLocator.RemoveScope (key);
@@ -189,7 +197,7 @@ namespace Zenvin.Services.Tests
 			var key = new TestScopeKey (0);
 
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var init = ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			var added = ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
 
 			// Assert
@@ -203,7 +211,7 @@ namespace Zenvin.Services.Tests
 		{
 			// Arrange
 			var key = new TestScopeKey (0);
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var init = ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Act
 			var added = ServiceLocator.AddScope (key, BuildEmptyScope);
@@ -220,10 +228,10 @@ namespace Zenvin.Services.Tests
 			// Arrange
 			var key0 = new TestScopeKey (0);
 			var key1 = new TestScopeKey (1);
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var init = ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Act
-			var added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope(builder, key1, ScopeRelationshipConstraint.Required, "Test"));
+			var added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, key1, ScopeRelationshipConstraint.Required, "Test"));
 
 			// Assert
 			Assert.IsTrue (init, "ServiceLocator should have been initialized");
@@ -240,7 +248,7 @@ namespace Zenvin.Services.Tests
 			var service = new InitializableService { InitCallback = () => { value = true; } };
 
 			// Act
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var init = ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			var added = ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, service));
 
 			// Assert
@@ -255,7 +263,7 @@ namespace Zenvin.Services.Tests
 		{
 			// Arrange
 			var key = new TestScopeKey (0);
-			var init = ServiceLocator.Initialize (BuildEmptyScope).WasInitialized;
+			var init = ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			var added = ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, "Test"));
 
 			// Act
@@ -276,7 +284,7 @@ namespace Zenvin.Services.Tests
 			var key1 = new TestScopeKey (1);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			var scope0Added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test 0"));
 			var scope1Added = ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 1"));
 			var scope0Removed = ServiceLocator.RemoveScope (key0);
@@ -298,7 +306,7 @@ namespace Zenvin.Services.Tests
 			var key2 = new TestScopeKey (2);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			var scope0Added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test 0"));
 			var scope1Added = ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 1"));
 			var scope2Added = ServiceLocator.AddScope (key2, builder => BuildNonEmptyScope (builder, key1, ScopeRelationshipConstraint.Hardened, "Test 2"));
@@ -322,7 +330,7 @@ namespace Zenvin.Services.Tests
 			var key2 = new TestScopeKey (2);
 
 			// Act
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			var scope0Added = ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "Test 0"));
 			var scope1Added = ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 1"));
 			var scope2Added = ServiceLocator.AddScope (key2, builder => BuildNonEmptyScope (builder, key0, ScopeRelationshipConstraint.Hardened, "Test 2"));
@@ -344,7 +352,7 @@ namespace Zenvin.Services.Tests
 		{
 			// Arrange
 			const string inValue = "rlkgnilrfgn";
-			ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, inValue));
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (builder => BuildNonEmptyScope (builder, inValue)).Execute ();
 
 			// Act
 			var get = ServiceLocator.TryGet (out string outValue);
@@ -359,7 +367,9 @@ namespace Zenvin.Services.Tests
 		{
 			// Arrange
 			var inValue = new StringReader ("");
-			ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, (typeof (IDisposable), inValue)));
+			ServiceLocator.GetInitializer ()
+				.WithGlobalScopeCallback (builder => BuildNonEmptyScope (builder, (typeof (IDisposable), inValue)))
+				.Execute ();
 
 			// Act
 			var get = ServiceLocator.TryGet<IDisposable, StringReader> (out var outValue);
@@ -375,7 +385,7 @@ namespace Zenvin.Services.Tests
 			// Arrange
 			const string inValue = "dxgbkcg";
 			var key = new TestScopeKey (1);
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, inValue));
 
 			// Act
@@ -392,7 +402,7 @@ namespace Zenvin.Services.Tests
 			// Arrange
 			var inValue = new StringReader ("");
 			var key = new TestScopeKey (1);
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.AddScope (key, builder => BuildNonEmptyScope (builder, (typeof (IDisposable), inValue)));
 
 			// Act
@@ -409,7 +419,7 @@ namespace Zenvin.Services.Tests
 			// Arrange
 			const string inValue = "dxgbkcg";
 			var key0 = new TestScopeKey (0);
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, key0, inValue));
 
 			// Act
@@ -426,7 +436,7 @@ namespace Zenvin.Services.Tests
 			// Arrange
 			var inValue = new StringReader ("");
 			var key0 = new TestScopeKey (0);
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, key0, (typeof (IDisposable), inValue)));
 
 			// Act
@@ -444,7 +454,7 @@ namespace Zenvin.Services.Tests
 			const string inValue = "dxgbkcg";
 			var key0 = new TestScopeKey (0);
 			var key1 = new TestScopeKey (1);
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, 0));
 			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, inValue));
 
@@ -463,7 +473,7 @@ namespace Zenvin.Services.Tests
 			var inValue = new StringReader ("");
 			var key0 = new TestScopeKey (0);
 			var key1 = new TestScopeKey (1);
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, "sfjhfshkjb"));
 			ServiceLocator.AddScope (key1, builder => BuildNonEmptyScope (builder, key0, (typeof (IDisposable), inValue)));
 
@@ -479,7 +489,7 @@ namespace Zenvin.Services.Tests
 		public void GetThrowsWhenUnresolvedInstanceTypeImplicit ()
 		{
 			// Arrange
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Act & Assert
 			Assert.Throws<ServiceException> (() => ServiceLocator.Get<string> ());
@@ -489,7 +499,7 @@ namespace Zenvin.Services.Tests
 		public void GetThrowsWhenUnresolvedInstanceTypeExplicit ()
 		{
 			// Arrange
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Act & Assert
 			Assert.Throws<ServiceException> (() => ServiceLocator.Get<string> (true));
@@ -499,7 +509,7 @@ namespace Zenvin.Services.Tests
 		public void GetThrowsWhenUnresolvedContractTypeImplicit ()
 		{
 			// Arrange
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Act & Assert
 			Assert.Throws<ServiceException> (() => ServiceLocator.Get<IDisposable, StringReader> ());
@@ -509,7 +519,7 @@ namespace Zenvin.Services.Tests
 		public void GetThrowsWhenUnresolvedContractTypeExplicit ()
 		{
 			// Arrange
-			ServiceLocator.Initialize (BuildEmptyScope);
+			ServiceLocator.GetInitializer ().WithGlobalScopeCallback (BuildEmptyScope).Execute ();
 
 			// Act & Assert
 			Assert.Throws<ServiceException> (() => ServiceLocator.Get<IDisposable, StringReader> (true));
@@ -523,8 +533,10 @@ namespace Zenvin.Services.Tests
 			var provider = new TestScopeProvider () { CurrentKey = key0 };
 			const string expectedValue = "expected";
 			const string fakeValue = "fake";
-			ServiceLocator.Initialize (builder => BuildNonEmptyScope (builder, fakeValue))
-				.WithScopeContextProvider (provider);
+			ServiceLocator.GetInitializer ()
+				.WithGlobalScopeCallback (builder => BuildNonEmptyScope (builder, fakeValue))
+				.WithScopeContextProvider (provider)
+				.Execute ();
 			ServiceLocator.AddScope (key0, builder => BuildNonEmptyScope (builder, expectedValue));
 
 			// Act

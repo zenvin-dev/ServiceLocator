@@ -12,8 +12,8 @@ namespace Zenvin.Services.Core
 
 		private static ServiceLocator loc;
 
-		private ServiceScope globalScope;
 		private readonly Dictionary<IScopeKey, ServiceScope> scopes;
+		private ServiceScope globalScope;
 		private IScopeContextProvider scopeContextProvider;
 
 
@@ -50,29 +50,15 @@ namespace Zenvin.Services.Core
 		internal static IEnumerable<KeyValuePair<IScopeKey, ServiceScope>> KeyedScopes => loc?.scopes;
 
 
-		private ServiceLocator (ServiceScope globalScope)
+		private ServiceLocator ()
 		{
-			this.globalScope = globalScope;
 			scopes = new Dictionary<IScopeKey, ServiceScope> ();
 		}
 
 
-		public static FluentConfigurator Initialize (BuildServiceScopeCallback buildGlobalScopeCallback)
+		public static Initializer GetInitializer ()
 		{
-			if (buildGlobalScopeCallback == null)
-				throw new ArgumentNullException (nameof (buildGlobalScopeCallback));
-			if (loc != null)
-				return new FluentConfigurator (loc, false);
-
-			var builder = new ServiceScopeBuilder (true);
-			buildGlobalScopeCallback?.Invoke (builder);
-
-			var scope = builder.Build ();
-			loc = new ServiceLocator (scope);
-			scope.Initialize (null, null);
-			events?.Invoke (null);
-
-			return new FluentConfigurator (loc, true);
+			return new Initializer ();
 		}
 
 		public static void Dispose ()
@@ -149,14 +135,6 @@ namespace Zenvin.Services.Core
 		public static bool RemoveScope (IScopeKey key)
 		{
 			AssertInitialized ();
-
-			//var scopes = loc.scopes;
-
-			//if (!scopes.TryGetValue (key, out var scope))
-			//	return false;
-
-			//scopes.Remove (key);
-			//scope.Dispose ();
 
 			if (key == null || !loc.scopes.ContainsKey (key))
 				return false;
@@ -275,6 +253,17 @@ namespace Zenvin.Services.Core
 		}
 
 
+		private void InitializeInternal (BuildServiceScopeCallback callback)
+		{
+			var builder = new ServiceScopeBuilder (true);
+			callback?.Invoke (builder);
+
+			var scope = builder.Build ();
+			globalScope = scope;
+
+			scope.Initialize (null, logger, builder.disableLateInitialization);
+			events?.Invoke (null);
+		}
 		private bool TryGetInternal<TContract, TInstance> (
 			IScopeKey scopeKey,
 			bool fallbackToGlobalValue,
@@ -406,6 +395,14 @@ namespace Zenvin.Services.Core
 			{
 				throw new ServiceLocatorNotInitializedException ();
 			}
+		}
+
+		private static bool LogAlreadyInitialized (ILogger logger)
+		{
+			if (!Initialized)
+				return true;
+
+			return false;
 		}
 	}
 }
