@@ -82,14 +82,16 @@ To use the `ServiceLocator`, it first needs to be initialized. This does **not**
 ### Simple Initialization
 Performing this initialization is as simple as calling
 ```csharp
-ServiceLocator.Initialize();
+ServiceLocator.GetInitializer().Execute();
 ```
 at any point during your game's or application's lifecycle (though the recommendation would be to do it during initialization).
 
 ### Populating the Global Scope
-The initialization always creates a *Global Scope*. To populate it with services, pass a build callback (`BuildServiceScopeCallback`) into `Initialize()` as an argument:
+The initialization always creates a *Global Scope*. To populate it with services, pass a build callback (`BuildServiceScopeCallback`) to the initializer:
 ```csharp
-ServiceLocator.Initialize(BuildGlobalScope);
+ServiceLocator.GetInitialize()
+    .WithGlobalScopeCallback(BuildGlobalScope)
+    .Execute();
 
 static void BuildGlobalScope(ServiceScopeBuilder builder)
 {
@@ -98,12 +100,8 @@ static void BuildGlobalScope(ServiceScopeBuilder builder)
 ```
 
 ### Advanced Initialization
-The `Initialize()` method always returns a `FluentConfigurator` instance. This can be used to provide the `ServiceLocator` with a `IScopeContextProvider`. It may be possible to configure further values in the future.
-```csharp
-ServiceLocator
-    .Initialize(...)
-    .WithScopeContextProvider(new MyScopeContextProvider());
-```
+The initializer returned by `ServiceLocator.GetInitializer()` contains several methods to further set up the `ServiceLocator` created through `Execute()`. \
+They are all chainable and named in a very self-explanatory way.
 
 ## Scope Setup
 The `ServiceLocator` can contain an arbitrary number of keyed scopes. Those are created by calling 
@@ -205,7 +203,7 @@ public class EntryPoint : MonoBehaviour
     // This is important to consider, because otherwise the initialization might happen after the call to Get().
     private void Awake()
     {
-        ServiceLocator.Initialize(BuildGlobalScope);
+        ServiceLocator.GetInitializer().WithGlobalScopeCallback(BuildGlobalScope).Execute();
     }
 
     private static void BuildGlobalScope(ServiceScopeBuilder builder)
