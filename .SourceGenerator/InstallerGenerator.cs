@@ -20,23 +20,26 @@ namespace Zenvin.Services.SourceGenerator
 			if (!(context.SyntaxReceiver is ServiceInstallerReceiver rec))
 				return;
 
-			var comp = context.Compilation;
 			var targets = new Dictionary<string, InjectClass> ();
 			var members = new List<InjectMember> ();
 			var callBase = new HashSet<string> ();
 
-			CollectGenerationTargets (rec, comp, targets, members);
+			foreach (var diag in rec.Diagnostics)
+				context.ReportDiagnostic (diag);
+
+			CollectGenerationTargets (in context, rec, targets, members);
 			CollectBaseClasses (targets, callBase);
 			GenerateSources (ref context, targets, callBase);
 		}
 
 
 		private static void CollectGenerationTargets (
+			in GeneratorExecutionContext context,
 			ServiceInstallerReceiver rec,
-			Compilation comp,
 			Dictionary<string, InjectClass> targets,
 			List<InjectMember> members)
 		{
+			var comp = context.Compilation;
 			foreach (var classDec in rec.CandidateClasses)
 			{
 				var classModel = comp.GetSemanticModel (classDec.SyntaxTree);
@@ -54,7 +57,7 @@ namespace Zenvin.Services.SourceGenerator
 					continue;
 
 				members.Clear ();
-				CollectGenerationMembers (classSymbol, members);
+				CollectGenerationMembers (in context, classSymbol, members);
 				if (members.Count == 0)
 					continue;
 
@@ -64,6 +67,7 @@ namespace Zenvin.Services.SourceGenerator
 		}
 
 		private static void CollectGenerationMembers (
+			in GeneratorExecutionContext context,
 			ITypeSymbol type,
 			List<InjectMember> members)
 		{
@@ -71,11 +75,20 @@ namespace Zenvin.Services.SourceGenerator
 			foreach (var member in typeMembers)
 			{
 				if (member.IsAbstract)
+				{
+					context.ReportDiagnostic (Diagnostic.Create (DiagnosticConstants.WarningAbstractMember, member.Locations.FirstOrDefault ()));
 					continue;
+				}
 				if (member.IsStatic)
+				{
+					context.ReportDiagnostic (Diagnostic.Create (DiagnosticConstants.WarningStaticMember, member.Locations.FirstOrDefault ()));
 					continue;
+				}
 				if (member.IsExtern)
+				{
+					context.ReportDiagnostic (Diagnostic.Create (DiagnosticConstants.WarningExternMember, member.Locations.FirstOrDefault ()));
 					continue;
+				}
 
 				var attrData = member
 					.GetAttributes ()
