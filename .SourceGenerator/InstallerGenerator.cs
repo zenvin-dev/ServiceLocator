@@ -53,8 +53,18 @@ namespace Zenvin.Services.SourceGenerator
 				if (attrData == null)
 					continue;
 
-				if (!HasUnityBaseType (classSymbol))
-					continue;
+				//if (!HasUnityBaseType (classSymbol))
+				//{
+				//	ReportDiagnostic (
+				//		in context, 
+				//		classSymbol.Locations.FirstOrDefault(), 
+				//		DiagnosticSeverity.Warning, 
+				//		1002, 
+				//		"Cannot inject into non-Unity type.", 
+				//		""
+				//	);
+				//	continue;
+				//}
 
 				members.Clear ();
 				CollectGenerationMembers (in context, classSymbol, members);
@@ -293,25 +303,6 @@ namespace Zenvin.Services.SourceGenerator
 			// Close Method
 			sb.Append (indent);
 			sb.AppendLine ("\t}");
-		}
-
-
-		private static bool HasUnityBaseType (ITypeSymbol symbol)
-		{
-			if (symbol == null)
-				return false;
-
-			symbol = symbol.BaseType;
-			while (symbol != null)
-			{
-				var name = symbol.ToDisplayString ();
-				if (name == "UnityEngine.MonoBehaviour" || name == "UnityEngine.ScriptableObject")
-					return true;
-
-				symbol = symbol.BaseType;
-			}
-
-			return false;
 		}
 
 		private static bool HasInjectionTargetBaseType (Dictionary<string, InjectClass> targets, ITypeSymbol type, HashSet<string> callBase)
