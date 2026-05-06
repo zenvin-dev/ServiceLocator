@@ -10,7 +10,7 @@ namespace Zenvin.Services.SourceGenerator
 	internal class ServiceInstallerReceiver : ISyntaxReceiver
 	{
 		public readonly List<ClassDeclarationSyntax> CandidateClasses = new List<ClassDeclarationSyntax> ();
-		public readonly List<Diagnostic> Diagnostics = new List<Diagnostic> ();
+
 
 		void ISyntaxReceiver.OnVisitSyntaxNode (SyntaxNode syntaxNode)
 		{
@@ -22,16 +22,13 @@ namespace Zenvin.Services.SourceGenerator
 			if (!(classNode.Parent is CompilationUnitSyntax) && !(classNode.Parent is NamespaceDeclarationSyntax))
 				return;
 
+			// Class is not partial
+			if (!classNode.Modifiers.Any (mod => mod.IsKind (SyntaxKind.PartialKeyword)))
+				return;
+
 			// Class does not have relevant attribute
 			if (!HasAttribute (classNode.AttributeLists, AnalysisConstants.ClassAttributeName))
 				return;
-
-			// Class is not partial
-			if (!classNode.Modifiers.Any (mod => mod.IsKind (SyntaxKind.PartialKeyword)))
-			{
-				Diagnostics.Add (Diagnostic.Create (DiagnosticConstants.WarningWholeType, classNode.GetLocation ()));
-				return;
-			}
 
 			CandidateClasses.Add (classNode);
 		}
