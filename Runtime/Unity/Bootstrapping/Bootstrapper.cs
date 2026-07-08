@@ -171,7 +171,11 @@ namespace Zenvin.Services.Unity.Bootstrapping
 					sb.Append (" ('");
 					sb.Append (module.name);
 					sb.Append ("', ");
+#if UNITY_6000_5_OR_NEWER
+					sb.Append (module.GetEntityId ().ToString());
+#else
 					sb.Append (module.GetInstanceID ());
+#endif
 					sb.Append (")");
 					sb.AppendLine ();
 				}
