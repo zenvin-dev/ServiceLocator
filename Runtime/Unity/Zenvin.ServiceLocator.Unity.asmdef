@@ -2,7 +2,9 @@
     "name": "Zenvin.ServiceLocator.Unity",
     "rootNamespace": "Zenvin.Services.Unity",
     "references": [
-        "GUID:1225563da49975440ac7c70d6bfa82ad"
+        "GUID:1225563da49975440ac7c70d6bfa82ad",
+        "GUID:84651a3751eca9349aac36a66bba901b",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
