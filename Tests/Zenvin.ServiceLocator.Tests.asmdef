@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Zenvin.ServiceLocator"
+        "Zenvin.ServiceLocator",
+        "Zenvin.ServiceLocator.Unity"
     ],
     "includePlatforms": [
         "Editor"
