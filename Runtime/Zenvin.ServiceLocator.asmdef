@@ -1,6 +1,6 @@
 {
     "name": "Zenvin.ServiceLocator",
-    "rootNamespace": "Zenvin.ServiceLocator",
+    "rootNamespace": "Zenvin.Services",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

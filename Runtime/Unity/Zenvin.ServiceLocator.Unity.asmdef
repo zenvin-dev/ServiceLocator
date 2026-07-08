@@ -1,6 +1,6 @@
 {
     "name": "Zenvin.ServiceLocator.Unity",
-    "rootNamespace": "Zenvin.ServiceLocator.Unity",
+    "rootNamespace": "Zenvin.Services.Unity",
     "references": [
         "GUID:1225563da49975440ac7c70d6bfa82ad"
     ],
