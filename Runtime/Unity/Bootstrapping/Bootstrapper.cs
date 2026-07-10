@@ -180,6 +180,8 @@ namespace Zenvin.Services.Unity.Bootstrapping
 					sb.AppendLine ();
 				}
 			}
+
+			Debug.Log (sb.ToString ());
 		}
 
 

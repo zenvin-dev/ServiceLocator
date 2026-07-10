@@ -6,18 +6,25 @@ namespace Zenvin.Services.Unity.Bootstrapping
 {
 	public class GlobalBootstrapper : Bootstrapper
 	{
+		[SerializeField] private bool useUnityLogger = true;
+
+
 		private protected sealed override bool CanExecute => !ServiceLocator.Initialized;
 
-
 		protected virtual IScopeContextProvider GetScopeContextProvider () => null;
+		protected virtual ILogger GetServiceLogger () => null;
 
 
 		private protected sealed override void Initialize (BatchedModuleCollection modules)
 		{
-			ServiceLocator.GetInitializer ()
+			var init = ServiceLocator.GetInitializer ()
 				.WithGlobalScopeCallback ((builder) => BuildGlobalScope (builder, modules))
-				.WithScopeContextProvider (GetScopeContextProvider ())
-				.Execute ();
+				.WithScopeContextProvider (GetScopeContextProvider ());
+
+			if (useUnityLogger)
+				init.WithUnityLogger (GetServiceLogger ());
+
+			init.Execute ();
 
 			HandleEditorPlaymodeEnd ();
 		}
