@@ -6,4 +6,9 @@ namespace Zenvin.Services.Unity
 	{
 		Type ContractType => GetType ();
 	}
+
+	public interface IService<T> : IService
+	{
+		Type IService.ContractType => typeof (T);
+	}
 }
