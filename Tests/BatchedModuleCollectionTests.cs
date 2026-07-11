@@ -99,6 +99,24 @@ namespace Zenvin.Services.Tests
 			Assert.Greater (coll[1].Value.Order, coll[0].Value.Order);
 		}
 
+		[Test]
+		public void Batching_RepeatedUpdatesDontCreateDuplicates ()
+		{
+			// Arrange
+			coll = new (
+				new Bootstrapper.OrderedModule (CreateModule (), 0),
+				new Bootstrapper.OrderedModule (CreateModule (), 1)
+			);
+
+			// Act
+			coll.Update ();
+			coll.Update ();
+
+			// Assert
+			Assert.AreEqual (2, coll.BatchCount);
+			Assert.AreEqual (2, coll.ModuleCount);
+		}
+
 
 		private BootstrapperModule CreateModule () => container.AddComponent<BootstrapperModuleTestImplementation> ();
 	}

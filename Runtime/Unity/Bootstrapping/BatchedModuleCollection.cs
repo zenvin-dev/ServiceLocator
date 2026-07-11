@@ -49,13 +49,17 @@ namespace Zenvin.Services.Unity.Bootstrapping
 			if (calculated)
 				Dispose ();
 
+			calculated = true;
 			batches ??= new ();
+			batches.Clear ();
 			if (originalModules == null || originalModules.Count == 0)
 				return;
 
 			using var _ = HashSetPool<BootstrapperModule>.Get (out var visited);
 			foreach (var module in originalModules)
+			{
 				InsertModule (module, visited);
+			}
 		}
 
 		public IEnumerable<IReadOnlyCollection<BootstrapperModule>> IterateBatches ()
