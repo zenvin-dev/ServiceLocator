@@ -12,7 +12,7 @@ namespace Zenvin.Services.Unity.Bootstrapping
 		private protected sealed override bool CanExecute => !ServiceLocator.Initialized;
 
 		protected virtual IScopeContextProvider GetScopeContextProvider () => null;
-		protected virtual ILogger GetServiceLogger () => null;
+		protected virtual Utility.ILogger GetServiceLogger () => null;
 
 
 		private protected sealed override void Initialize (BatchedModuleCollection modules)
@@ -22,7 +22,17 @@ namespace Zenvin.Services.Unity.Bootstrapping
 				.WithScopeContextProvider (GetScopeContextProvider ());
 
 			if (useUnityLogger)
-				init.WithUnityLogger (GetServiceLogger ());
+			{
+				init.WithUnityLogger ();
+			}
+			else
+			{
+				var logger = GetServiceLogger ();
+				if (logger != null)
+				{
+					init.WithLogger (logger);
+				}
+			}
 
 			init.Execute ();
 

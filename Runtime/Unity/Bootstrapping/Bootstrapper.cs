@@ -28,8 +28,8 @@ namespace Zenvin.Services.Unity.Bootstrapping
 		[SerializeField] private BootstrapperHook hook = null;
 		[SerializeField] private BootstrapTrigger trigger = BootstrapTrigger.Awake;
 		[Space]
+		[SerializeField] private ThreadPriority boostrapPriority = ThreadPriority.High;
 		[SerializeField] private ThreadPriority defaultPriority = ThreadPriority.BelowNormal;
-		[SerializeField] private ThreadPriority initPriority = ThreadPriority.High;
 		[Space]
 		[SerializeField] private bool verboseLogging = false;
 
@@ -77,7 +77,7 @@ namespace Zenvin.Services.Unity.Bootstrapping
 			Debug.Log ("[Service Bootstrap] Executing bootstrapper");
 
 			State = BootstrapState.Running;
-			Application.backgroundLoadingPriority = initPriority;
+			Application.backgroundLoadingPriority = boostrapPriority;
 			try
 			{
 				modules.Update (true);
@@ -149,13 +149,14 @@ namespace Zenvin.Services.Unity.Bootstrapping
 
 		private void LogModules ()
 		{
-			if (!verboseLogging)
+			if (!verboseLogging || !Debug.isDebugBuild)
 				return;
 			if (modules == null)
 				return;
 
 			var sb = new StringBuilder ();
-			sb.AppendLine ("[Service Bootstrap] Module execution order:");
+			sb.AppendFormat ("[Service Bootstrap] Module execution order (Total {0} modules, {1} batches):", modules.ModuleCount, modules.ModuleCount);
+			sb.AppendLine ();
 
 			int i = 0;
 			foreach (var batch in modules.IterateBatches ())
